@@ -1,0 +1,25 @@
+# =====================================================================
+# Sentinel — AI Cybersecurity Agent (email threat detection + forensics)
+# Runtime dependencies. Everything local except free-tier reputation APIs.
+# =====================================================================
+
+# --- Core runtime ----------------------------------------------------
+rich>=13.7.0          # live-updating terminal UI (progress bars, panels, color)
+requests>=2.31.0      # HTTP: Ollama, GeoIP, VirusTotal, AbuseIPDB (all local/HTTP)
+email-validator>=2.1  # sanity-check extracted addresses (optional hardening)
+flask>=3.0            # Web Application Dashboard & REST API
+
+# --- Sandbox / static file analysis (used INSIDE the Docker container)---
+# These are NOT required on the host to run the agent; only inside sandbox.
+# Keep them listed for the sandbox image build (see sandbox/Dockerfile).
+# python-magic / oletools / exiftool are consumed by static_file_scan.
+
+# --- Desktop pet (overlay/sentinel_pet.py) ---------------------------
+PySide6>=6.5          # pixel-art desktop character (frameless/transparent window)
+
+# --- Optional --------------------------------------------------------
+# dnspython>=2.6      # richer DNS for Tor-exit + reverse lookups (falls back to socket)
+# web3>=6.0           # ONLY if using Ganache/Ethereum logging (hash-chain is default)
+# pynput>=1.7         # OPTIONAL: privacy-safe "user is typing" reaction for the pet
+#                     # (needs libevdev on Linux / accessibility perms on macOS).
+#                     # The pet works fully WITHOUT it (mouse tracking uses QCursor).

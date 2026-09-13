@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font: 13px 'Segoe UI', sans-serif; background: #0F172A; color: #E2E8F0; width: 300px; margin: 0; padding: 14px; }
+    h1 { font-size: 14px; margin: 0 0 4px; color: #60A5FA; }
+    p.sub { margin: 0 0 12px; color: #94A3B8; font-size: 11px; }
+    label { display: block; font-size: 11px; color: #94A3B8; margin: 10px 0 4px; }
+    input { width: 100%; box-sizing: border-box; background: #1E293B; border: 1px solid #334155;
+            color: #E2E8F0; border-radius: 6px; padding: 7px 8px; font-size: 12px; }
+    button { margin-top: 10px; width: 100%; background: #3B82F6; border: 0; color: #fff;
+             padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    button:hover { background: #2563EB; }
+    #status { margin-top: 10px; font-size: 11px; line-height: 1.5; color: #94A3B8; }
+    .ok { color: #10B981; } .bad { color: #EF4444; }
+    #last { margin-top: 10px; font-size: 11px; color: #E2E8F0; background: #1E293B;
+            border-radius: 6px; padding: 8px; display: none; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Sentinel Guard Connector</h1>
+  <p class="sub">Activates Sentinel ONLY when you open a mail in Gmail.</p>
+
+  <label for="token">API key or session token (optional while the server is in open mode)</label>
+  <input id="token" placeholder="sk_sentinel_… or sk_session_…">
+  <button id="save">Save token</button>
+
+  <div id="status">Checking server…</div>
+  <div id="last"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

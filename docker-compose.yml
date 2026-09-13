@@ -1,0 +1,16 @@
+# Sentinel demo stack: a local, self-hosted open-source SMTP catcher
+# (Mailpit, MIT) used as the pet's demo/test inbox — no real Gmail needed.
+#
+#   docker compose up -d
+#   -> Web UI / REST API : http://localhost:8025
+#   -> SMTP capture      : localhost:1025
+#   -> then: python -m overlay.seed_mailpit
+#
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: sentinel-mailpit
+    ports:
+      - "8025:8025"   # web UI + REST API
+      - "1025:1025"   # SMTP (capture)
+    restart: unless-stopped

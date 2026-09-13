@@ -1,0 +1,32 @@
+Delivered-To: alice@example.com
+Received: by 2002:a05:6a00:1b2:c0de:dead:beef:1 with SMTP id x1csp123456abc;
+        Fri, 06 Sep 2026 08:15:22 -0700 (PDT)
+X-Received: by 2002:a17:906:2c4a:b0:1a2:b3c4:d5e6 with SMTP id y2-20020a1709062c4a00b001a2b3c4d5e6mr12345qvl.4.1725634522000;
+        Fri, 06 Sep 2026 08:15:22 -0700 (PDT)
+Return-Path: <bob@example.com>
+Received: from mail.example.com (mail.example.com [203.0.113.45])
+        by mx.google.com with ESMTP id z3si4567890qvb.1.2026.09.06.08.15.21
+        for <alice@example.com>;
+        Fri, 06 Sep 2026 08:15:21 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bob@example.com designates 203.0.113.45 as permitted sender) client-ip=203.0.113.45;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@example.com header.s=default header.b=abcdefgh;
+       spf=pass (google.com: domain of bob@example.com designates 203.0.113.45 as permitted sender) smtp.mailfrom=bob@example.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=default;
+       h=from:to:subject:date:message-id; bh=ABCDEFGHIJKLMNOPQRSTUVWXYZ=;
+       b=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/+AA
+From: Bob Smith <bob@example.com>
+To: Alice <alice@example.com>
+Subject: Q3 budget draft for review
+Date: Fri, 06 Sep 2026 08:15:20 -0700
+Message-ID: <20260906151520.123456@mail.example.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Alice,
+
+Please find attached the Q3 budget draft for your review before Monday's
+planning meeting. Let me know if you have any changes.
+
+Thanks,
+Bob

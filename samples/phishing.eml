@@ -1,0 +1,35 @@
+Delivered-To: victim@example.com
+Received: by 2002:a05:6000:1c2d:b0:3a4:b5c6:d7e8 with SMTP id a1csp987654xyz;
+        Fri, 06 Sep 2026 09:02:11 -0700 (PDT)
+X-Received: by 2002:a17:907:1b2c:b0:9d8:e7f6:c5b4 with SMTP id b2-20020a1709071b2c00b009d8e7f6c5b4mr67890pfn.9.1725637331000;
+        Fri, 06 Sep 2026 09:02:11 -0700 (PDT)
+Return-Path: <bounce@m3trics-svc.ru>
+Received: from m3trics-svc.ru (m3trics-svc.ru [185.220.101.34])
+        by mx.google.com with ESMTP id c3si1234567pln.1.2026.09.06.09.02.10
+        for <victim@example.com>;
+        Fri, 06 Sep 2026 09:02:10 -0700 (PDT)
+Received-SPF: fail (google.com: domain of bounce@m3trics-svc.ru does not designate 185.220.101.34 as permitted sender) client-ip=185.220.101.34;
+Authentication-Results: mx.google.com;
+       dkim=neutral (no signature) header.i=@m3trics-svc.ru;
+       spf=fail (google.com: domain of bounce@m3trics-svc.ru does not designate 185.220.101.34 as permitted sender) smtp.mailfrom=bounce@m3trics-svc.ru
+From: "PayPal Security" <service@paypal.com>
+Reply-To: <billing@m3trics-svc.ru>
+To: victim@example.com
+Subject: Your account has been limited — action required
+Date: Fri, 06 Sep 2026 09:02:09 -0700
+Message-ID: <PAYPAL-SECURITY-9928712@m3trics-svc.ru>
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+
+<html>
+<body>
+<p>Dear valued customer,</p>
+<p>We noticed unusual activity on your <b>PayPal</b> account. Your account
+has been <b>temporarily limited</b> until you verify your identity.</p>
+<p>Please confirm your account by clicking the link below within 24 hours
+to avoid permanent suspension:</p>
+<p><a href="https://paypa1.com.verify-account.ru/login?session=9f8e7d6c">Verify your PayPal account now</a></p>
+<p>If you do not verify, your account will be closed.</p>
+<p>— PayPal Security Team</p>
+</body>
+</html>

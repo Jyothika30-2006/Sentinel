@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Sentinel — AI Cybersecurity & Forensic Investigation Dashboard</title>
+    <!-- Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* ============================================================
+           SENTINEL DESIGN SYSTEM — "Shopeers" light analytics style
+           Palette from reference: #F0F2F5 page, #0B0D17 ink,
+           #0A24E9 accent, #29315D indigo, #5C9764 green.
+           ============================================================ */
+        :root {
+            --page-bg: #EEF1F5;
+            --surface: #FFFFFF;
+            --surface-2: #F6F8FB;
+            --ink: #0B0D17;
+            --ink-2: #3D4468;
+            --muted: #8A93A6;
+            --muted-2: #B9C0CE;
+            --line: #E7EBF2;
+            --line-strong: #DCE2EC;
+
+            --accent: #0A24E9;
+            --accent-hover: #152EAE;
+            --accent-soft: #EEF1FF;
+            --indigo: #29315D;
+
+            --safe: #2E9E5B;
+            --safe-bg: #E6F4EA;
+            --suspicious: #D97E00;
+            --suspicious-bg: #FDF3E2;
+            --malicious: #D64545;
+            --malicious-bg: #FCEAEA;
+            --cyan: #0891B2;
+            --cyan-bg: #E3F5F9;
+
+            --shadow-card: 0 1px 2px rgba(11,13,23,.04), 0 8px 24px rgba(11,13,23,.05);
+            --shadow-pop: 0 12px 32px rgba(11,13,23,.14);
+            --radius: 16px;
+            --radius-sm: 12px;
+        }
+
+        [data-theme="dark"] {
+            --page-bg: #0B0D17;
+            --surface: #12152A;
+            --surface-2: #171B33;
+            --ink: #F2F4FA;
+            --ink-2: #C6CBDD;
+            --muted: #8A93A6;
+            --muted-2: #5A6079;
+            --line: #232849;
+            --line-strong: #2C3257;
+            --accent: #5B74FF;
+            --accent-hover: #7B8FFF;
+            --accent-soft: #1B2150;
+            --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+            --safe: #4CC97F;   --safe-bg: #12271B;
+            --suspicious: #F0A63C; --suspicious-bg: #2B2210;
+            --malicious: #F26D6D;  --malicious-bg: #331519;
+            --cyan: #38C4E3;   --cyan-bg: #0E2830;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--page-bg);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        ::selection { background: var(--accent); color: #fff; }
+
+        /* ============ Floating App Frame ============ */
+        .app-frame {
+            display: flex;
+            margin: 14px;
+            min-height: calc(100vh - 28px);
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            overflow: clip;
+        }
+
+        /* ============ Sidebar ============ */
+        .sidebar {
+            width: 248px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--line);
+            padding: 22px 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 28px);
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            padding: 2px 8px 20px;
+        }
+        .brand-mark {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), #4E63F5);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 15px;
+            box-shadow: 0 6px 14px rgba(10,36,233,.28);
+        }
+        .brand-name { font-size: 18px; font-weight: 800; letter-spacing: -.3px; color: var(--ink); }
+        .brand-name span { color: var(--accent); }
+        .brand-sub { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; }
+
+        .nav-section { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted-2); padding: 14px 10px 6px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 12px; border-radius: 12px;
+            color: var(--ink-2); font-size: 13.5px; font-weight: 600;
+            cursor: pointer; position: relative;
+            transition: background .15s ease, color .15s ease;
+            user-select: none;
+        }
+        .nav-item i { width: 20px; text-align: center; font-size: 15px; color: var(--muted); transition: color .15s; }
+        .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+        .nav-item:hover i { color: var(--ink-2); }
+        .nav-item.active { background: var(--accent-soft); color: var(--accent); }
+        .nav-item.active i { color: var(--accent); }
+        .nav-item.active::before {
+            content: ""; position: absolute; left: -14px; top: 9px; bottom: 9px;
+            width: 4px; border-radius: 0 4px 4px 0; background: var(--accent);
+        }
+        .nav-badge {
+            margin-left: auto; min-width: 22px; text-align: center;
+            background: var(--accent-soft); color: var(--accent);
+            font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 3px 7px;
+        }
+        .nav-sep { height: 1px; background: var(--line); margin: 14px 8px; }
+
+        .sidebar-status { margin-top: auto; padding: 8px 6px 4px; display: flex; flex-direction: column; gap: 8px; }
+        .status-chip {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11.5px; font-weight: 600; color: var(--safe);
+            background: var(--safe-bg); border-radius: 20px; padding: 6px 12px; width: fit-content;
+        }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 3px rgba(46,158,91,.18); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+        .engine-line { font-size: 11px; color: var(--muted); padding: 0 6px; }
+
+        /* Premium-style guard card (reference: Upgrade-to-Premium slot) */
+        .guard-card {
+            margin: 14px 6px 4px;
+            border-radius: 16px; padding: 16px;
+            background: linear-gradient(150deg, var(--indigo) 0%, var(--accent) 130%);
+            color: #fff; position: relative; overflow: hidden;
+        }
+        .guard-card::after {
+            content: ""; position: absolute; right: -26px; top: -26px;
+            width: 90px; height: 90px; border-radius: 50%;
+            background: rgba(255,255,255,.09);
+        }
+        .guard-card .gc-icon {
+            width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,.16);
+            display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 10px;
+        }
+        .guard-card .gc-title { font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+        .guard-card .gc-sub { font-size: 11px; opacity: .8; line-height: 1.45; margin-bottom: 12px; }
+        .guard-card .gc-btn {
+            width: 100%; border: none; cursor: pointer;
+            background: #fff; color: var(--accent);
+            font-size: 12px; font-weight: 700; border-radius: 10px; padding: 9px 0;
+            transition: transform .15s ease;
+        }
+        .guard-card .gc-btn:hover { transform: translateY(-1px); }
+
+        /* ============ Main column ============ */
+        .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+        /* Topbar */
+        .topbar {
+            display: flex; align-items: center; gap: 16px;
+            padding: 14px 26px;
+            border-bottom: 1px solid var(--line);
+        }
+        .topbar-search {
+            flex: 1; max-width: 460px; display: flex; align-items: center; gap: 10px;
+            background: var(--surface-2); border: 1px solid var(--line);
+            border-radius: 999px; padding: 9px 16px;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+        .topbar-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,36,233,.1); }
+        .topbar-search i { color: var(--muted); font-size: 13px; }
+        .topbar-search input {
+            border: none; outline: none; background: transparent; flex: 1;
+            font-size: 13px; color: var(--ink); font-family: inherit;
+        }
+        .topbar-search input::placeholder { color: var(--muted-2); }
+        .kbd {
+            font-size: 10px; font-weight: 700; color: var(--muted);
+            border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 6px;
+            background: var(--surface);
+        }
+        .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .icon-btn {
+            width: 38px; height: 38px; border-radius: 12px;
+            border: 1px solid var(--line); background: var(--surface);
+            color: var(--ink-2); cursor: pointer; font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s ease, color .15s ease; position: relative;
+        }
+        .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+        .icon-btn .dot-badge {
+            position: absolute; top: 8px; right: 8px; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--malicious); border: 2px solid var(--surface);
+            display: none;
+        }
+        .avatar {
+            width: 38px; height: 38px; border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), #4E63F5);
+            color: #fff; font-weight: 700; font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: default; box-shadow: 0 4px 10px rgba(10,36,233,.25);
+        }
+
+        /* Bell dropdown */
+        .bell-wrap { position: relative; }
+        .bell-dropdown {
+            display: none; position: absolute; right: 0; top: 46px; width: 320px;
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 14px; box-shadow: var(--shadow-pop); z-index: 500;
+            overflow: hidden;
+        }
+        .bell-dropdown.open { display: block; }
+        .bell-dropdown .bd-head { padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--line); }
+        .bell-dropdown .bd-item { padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: 12.5px; display: flex; gap: 10px; align-items: center; }
+        .bell-dropdown .bd-item:last-child { border-bottom: none; }
+        .bell-dropdown .bd-item .mono { font-size: 10.5px; color: var(--muted); }
+        .bell-empty { padding: 22px 16px; text-align: center; font-size: 12px; color: var(--muted); }
+
+        /* Content area */
+        .content { padding: 22px 26px 30px; flex: 1; }
+
+        .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+        .page-head h1 { font-size: 23px; font-weight: 800; letter-spacing: -.4px; color: var(--ink); }
+        .page-head p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+        .page-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        /* Companion strip */
+        .companion-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 14px; padding: 10px 16px; margin-bottom: 16px;
+            font-size: 12.5px; box-shadow: var(--shadow-card);
+            transition: border-color .4s ease;
+        }
+        .companion-tag { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 11px; letter-spacing: .8px; color: var(--muted); }
+        #companion-state-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(10,36,233,.14); animation: statedot-pulse 2s infinite; flex-shrink: 0; }
+        @keyframes statedot-pulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+        #companion-state-label { font-weight: 700; flex: 1; min-width: 140px; }
+        #companion-risk-badge {
+            padding: 3px 10px; border-radius: 20px; font-size: 10.5px; font-weight: 800; display: none;
+        }
+        #companion-state-msg { color: var(--muted); font-size: 11.5px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #companion-case-link {
+            display: none; cursor: pointer; padding: 4px 12px; border-radius: 16px;
+            font-size: 11px; font-weight: 700;
+            background: var(--accent-soft); color: var(--accent); border: 1px solid transparent;
+        }
+        #companion-case-link:hover { border-color: var(--accent); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 16px; border-radius: 11px;
+            font-size: 13px; font-weight: 600; font-family: inherit;
+            cursor: pointer; border: 1px solid transparent;
+            transition: all .15s ease; white-space: nowrap;
+        }
+        .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(10,36,233,.25); }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-ghost { background: var(--surface); color: var(--ink-2); border-color: var(--line); }
+        .btn-ghost:hover { background: var(--surface-2); color: var(--ink); border-color: var(--line-strong); }
+        .btn-danger { background: var(--malicious-bg); color: var(--malicious); }
+        .btn-danger:hover { filter: brightness(.97); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 9px; }
+
+        /* Cards */
+        .card {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: var(--radius); padding: 20px; margin-bottom: 18px;
+            box-shadow: var(--shadow-card);
+        }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+        }
+        .card-title { font-size: 15px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 9px; letter-spacing: -.2px; }
+        .card-title i { color: var(--accent); font-size: 13px; }
+        .card-sub { font-size: 11.5px; color: var(--muted); }
+
+        /* KPI metric cards */
+        .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+        @media (max-width: 1280px) { .metrics-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } }
+        .metric-card {
+            background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+            padding: 16px 18px; box-shadow: var(--shadow-card);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+        .metric-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .metric-label { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+        .metric-tile {
+            width: 34px; height: 34px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .metric-tile.blue  { background: var(--accent-soft); color: var(--accent); }
+        .metric-tile.green { background: var(--safe-bg); color: var(--safe); }
+        .metric-tile.amber { background: var(--suspicious-bg); color: var(--suspicious); }
+        .metric-tile.red   { background: var(--malicious-bg); color: var(--malicious); }
+        .metric-tile.cyan  { background: var(--cyan-bg); color: var(--cyan); }
+        .metric-num { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--ink); display: flex; align-items: center; gap: 9px; }
+        .delta-chip {
+            font-size: 10.5px; font-weight: 700; border-radius: 20px; padding: 3px 8px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .delta-up   { background: var(--safe-bg); color: var(--safe); }
+        .delta-warn { background: var(--suspicious-bg); color: var(--suspicious); }
+        .delta-bad  { background: var(--malicious-bg); color: var(--malicious); }
+        .delta-flat { background: var(--surface-2); color: var(--muted); }
+        .metric-caption { font-size: 10.5px; color: var(--muted-2); margin-top: 5px; }
+
+        /* Dashboard analytics grid */
+        .analytics-grid { display: grid; grid-template-columns: 1fr 340px; gap: 18px; align-items: start; }
+        @media (max-width: 1180px) { .analytics-grid { grid-template-columns: 1fr; } }
+        .analytics-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .analytics-col + .analytics-col { margin-top: 0; }
+
+        .chart-box { width: 100%; }
+        .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--muted); font-weight: 600; }
+        .chart-legend .sw { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+
+        .donut-wrap { display: flex; align-items: center; gap: 18px; }
+        .donut-center { font-size: 21px; font-weight: 800; fill: var(--ink); }
+        .donut-legend { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: var(--ink-2); }
+        .donut-legend .row { display: flex; align-items: center; gap: 8px; }
+        .donut-legend .sw { width: 10px; height: 10px; border-radius: 4px; }
+        .donut-legend b { margin-left: auto; color: var(--ink); }
+
+        .bars-wrap { display: flex; align-items: flex-end; justify-content: space-between; height: 150px; padding: 0 4px; }
+        .bar-col { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1; }
+        .bar-col .bar {
+            width: 26px; border-radius: 8px; background: var(--surface-2);
+            border: 1px solid var(--line); position: relative;
+            transition: background .2s ease;
+        }
+        .bar-col .bar.hot { background: linear-gradient(180deg, #4E63F5, var(--accent)); border-color: transparent; box-shadow: 0 6px 14px rgba(10,36,233,.3); }
+        .bar-col .bar-val { font-size: 10.5px; font-weight: 700; color: var(--ink-2); }
+        .bar-col .bar-day { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+        .bar-col .bar-day.hot { color: var(--accent); font-weight: 700; }
+
+        .gauge-wrap { display: flex; flex-direction: column; align-items: center; padding: 6px 0 2px; }
+        .gauge-value { font-size: 30px; font-weight: 800; letter-spacing: -1px; margin-top: -58px; }
+        .gauge-cap { font-size: 11px; color: var(--muted); margin: 4px 0 12px; }
+        .gauge-btn {
+            border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+            font-size: 12px; font-weight: 600; border-radius: 10px; padding: 8px 16px; cursor: pointer;
+            font-family: inherit;
+        }
+        .gauge-btn:hover { background: var(--surface-2); }
+
+        .ai-card { text-align: center; }
+        .ai-orb {
+            width: 74px; height: 74px; border-radius: 50%; margin: 14px auto 12px;
+            background: radial-gradient(circle at 32% 30%, #7B8FFF, var(--accent) 58%, var(--indigo));
+            box-shadow: 0 14px 30px rgba(10,36,233,.35), inset 0 -8px 18px rgba(0,0,0,.25);
+            animation: orbFloat 3.4s ease-in-out infinite;
+        }
+        @keyframes orbFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+        .ai-card p { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+
+        /* Quick actions */
+        .qa-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        /* Tables */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th {
+            font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+            color: var(--muted); padding: 9px 12px; border-bottom: 1px solid var(--line);
+        }
+        td { padding: 12px; border-bottom: 1px solid var(--line); color: var(--ink-2); vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover td { background: var(--surface-2); }
+        .td-strong { color: var(--ink); font-weight: 600; }
+
+        .empty-row { text-align: center; color: var(--muted); }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed var(--line-strong); border-radius: var(--radius);
+            padding: 42px 20px; text-align: center; background: var(--surface-2);
+            cursor: pointer; transition: all .25s ease;
+        }
+        .dropzone:hover, .dropzone.dragover { border-color: var(--accent); background: var(--accent-soft); }
+        .dropzone-icon { font-size: 38px; color: var(--accent); margin-bottom: 14px; }
+        .dropzone-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+        .dropzone-sub { font-size: 12.5px; color: var(--muted); }
+
+        /* Results */
+        .mini-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .mini-stat { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 15px; }
+        .mini-stat .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 5px; }
+        .mini-stat .val { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -.5px; }
+        .mini-stat .val-sm { font-size: 13.5px; font-weight: 700; color: var(--cyan); margin-top: 3px; }
+
+        .story-box {
+            background: linear-gradient(135deg, var(--accent-soft), transparent 130%);
+            border: 1px solid var(--line); border-radius: var(--radius-sm);
+            padding: 16px 18px; margin-bottom: 18px;
+        }
+        .story-box .sb-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 7px; display: flex; align-items: center; gap: 8px; }
+        .story-box .sb-title i { color: var(--accent); }
+        #res-threat-story { font-size: 13px; color: var(--ink-2); line-height: 1.65; }
+
+        .wtm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .wtm-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 16px; }
+        .wtm-tile .wtm-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .9px; margin-bottom: 6px; }
+        .wtm-tile div:last-child { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
+        .wtm-what .wtm-lbl { color: var(--accent); }
+        .wtm-why .wtm-lbl { color: var(--suspicious); }
+        .wtm-impact .wtm-lbl { color: var(--malicious); }
+        .wtm-action .wtm-lbl { color: var(--safe); }
+        .wtm-what { border-top: 3px solid var(--accent); }
+        .wtm-why { border-top: 3px solid var(--suspicious); }
+        .wtm-impact { border-top: 3px solid var(--malicious); }
+        .wtm-action { border-top: 3px solid var(--safe); }
+
+        .results-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+        @media (max-width: 1000px) { .results-2col { grid-template-columns: 1fr; } }
+        .results-panel { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px; }
+        .results-panel .rp-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .results-panel .rp-title i { color: var(--accent); }
+
+        .breakdown-row {
+            display: flex; justify-content: space-between; gap: 10px; align-items: center;
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 10px; padding: 9px 12px; margin-bottom: 7px; font-size: 12.5px; color: var(--ink-2);
+        }
+        .breakdown-row strong { color: var(--malicious); white-space: nowrap; }
+        .breakdown-clean { color: var(--safe); font-size: 12.5px; font-weight: 600; }
+
+        .timeline-item { display: flex; gap: 10px; align-items: baseline; font-size: 12.5px; margin-bottom: 8px; }
+        .timeline-item .t-ts { font-family: 'JetBrains Mono', monospace; color: var(--muted); font-size: 11px; }
+        .timeline-item .t-phase { color: var(--accent); font-weight: 700; font-size: 11.5px; min-width: 130px; }
+        .timeline-item .t-event { color: var(--ink-2); }
+
+        .graph-shell { width: 100%; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 18px; }
+
+        details.tech { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 18px; }
+        details.tech summary { cursor: pointer; font-weight: 600; color: var(--muted); font-size: 12.5px; }
+
+        .results-footer { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        #res-blockchain-ref { font-size: 11.5px; color: var(--muted); }
+
+        /* Verdict badges */
+        .verdict-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px;
+            font-weight: 800; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px;
+        }
+        .verdict-SAFE { background: var(--safe-bg); color: var(--safe); }
+        .verdict-SUSPICIOUS { background: var(--suspicious-bg); color: var(--suspicious); }
+        .verdict-MALICIOUS { background: var(--malicious-bg); color: var(--malicious); }
+        .verdict-N_A, .verdict-N-A { background: var(--surface-2); color: var(--muted); }
+
+        /* Code blocks */
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0B0D17; color: #D7DBF0;
+            border: 1px solid #1E2238; border-radius: var(--radius-sm);
+            padding: 14px 16px; font-size: 12px; line-height: 1.6;
+            overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+        /* Samples */
+        .samples-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+        .sample-card {
+            background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+            padding: 18px; display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: var(--shadow-card); transition: all .18s ease;
+        }
+        .sample-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-pop); border-color: var(--line-strong); }
+        .sample-title { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+        .sample-desc { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; line-height: 1.55; }
+
+        /* Loading */
+        .spinner {
+            border: 3px solid var(--line); width: 24px; height: 24px; border-radius: 50%;
+            border-left-color: var(--accent); animation: spin .8s linear infinite; display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-box { text-align: center; padding: 44px 20px !important; }
+        .loading-box .spinner { width: 38px; height: 38px; margin-bottom: 14px; }
+        .loading-box h3 { font-size: 16px; color: var(--ink); margin-bottom: 7px; }
+        .loading-box p { color: var(--muted); font-size: 13px; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(11,13,23,.55); backdrop-filter: blur(6px);
+            z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-container {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 20px; width: 92%; max-width: 820px; max-height: 86vh;
+            display: flex; flex-direction: column; box-shadow: var(--shadow-pop);
+        }
+        .modal-header { padding: 18px 22px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+        .close-modal { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+        .close-modal:hover { color: var(--ink); }
+
+        /* Ledger status banner */
+        .ledger-ok { background: var(--safe-bg); color: var(--safe); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+        .ledger-bad { background: var(--malicious-bg); color: var(--malicious); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+
+        /* Activation overlay */
+        #activationOverlay {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(240,242,245,.92); backdrop-filter: blur(14px);
+            display: none; align-items: center; justify-content: center;
+        }
+        .act-card {
+            width: 440px; background: var(--surface); border: 1px solid var(--line);
+            border-radius: 22px; padding: 38px 34px; text-align: center;
+            box-shadow: var(--shadow-pop);
+        }
+        .act-shield {
+            width: 62px; height: 62px; margin: 0 auto 14px; border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent), #4E63F5);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 26px; box-shadow: 0 10px 24px rgba(10,36,233,.3);
+        }
+        .act-input {
+            width: 100%; background: var(--surface-2); border: 1px solid var(--line-strong);
+            border-radius: 11px; padding: 11px 15px; color: var(--ink); font-size: 13.5px;
+            font-family: inherit; outline: none; transition: border-color .15s;
+        }
+        .act-input:focus { border-color: var(--accent); }
+        .act-label { display: block; text-align: left; color: var(--ink-2); font-size: 11.5px; font-weight: 700; margin-bottom: 6px; }
+        .act-btn {
+            width: 100%; margin-top: 14px; background: var(--accent); color: #fff;
+            border: none; border-radius: 11px; padding: 12px; font-size: 13.5px;
+            font-weight: 700; font-family: inherit; cursor: pointer; transition: background .15s;
+        }
+        .act-btn:hover { background: var(--accent-hover); }
+        .act-sec { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; padding: 8px; font-size: 12px; width: 100%; margin-top: 8px; cursor: pointer; font-family: inherit; }
+
+        /* Copilot */
+        .copilot-msg { max-width: 85%; padding: 10px 14px; border-radius: 13px; font-size: 13px; line-height: 1.55; margin-bottom: 10px; white-space: pre-wrap; }
+        .copilot-user { align-self: flex-end; background: var(--accent); color: #fff; border-radius: 13px 13px 3px 13px; }
+        .copilot-bot { align-self: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 13px 13px 13px 3px; color: var(--ink-2); }
+        .copilot-bot strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 12px; }
+
+        /* Web mascot */
+        #web-companion-container { position: fixed; bottom: 18px; right: 22px; z-index: 9999; display: flex; flex-direction: column; align-items: center; user-select: none; }
+        #web-companion-speech {
+            background: var(--surface); border: 1px solid var(--line-strong);
+            box-shadow: var(--shadow-pop); border-radius: 12px; padding: 7px 13px;
+            color: var(--ink-2); font-size: 11.5px; font-weight: 600; text-align: center;
+            max-width: 230px; margin-bottom: 6px; position: relative; transition: all .3s cubic-bezier(.175,.885,.32,1.275);
+        }
+        #web-companion-speech::after {
+            content: ""; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+            border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 7px solid var(--surface);
+        }
+        #web-companion-pill {
+            background: var(--surface); border: 1px solid var(--line-strong);
+            border-radius: 20px; padding: 4px 13px; margin-top: 2px;
+            font-size: 10.5px; font-weight: 800; color: var(--accent);
+            text-transform: uppercase; letter-spacing: .8px; box-shadow: var(--shadow-card);
+            font-family: 'JetBrains Mono', monospace; white-space: nowrap; cursor: pointer;
+            transition: all .3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- EMAIL ACTIVATION LOCK SCREEN OVERLAY -->
+    <div id="activationOverlay">
+        <div class="act-card">
+            <div class="act-shield"><i class="fa-solid fa-shield-halved"></i></div>
+            <div id="actStatus" style="color: var(--malicious); font-size: 16px; font-weight: 800; letter-spacing: .3px; margin-bottom: 5px;">Sentinel Agent → LOCKED</div>
+            <div id="actSubtitle" style="color: var(--muted); font-size: 12.5px; margin-bottom: 20px;">Activate your email ID to unlock Sentinel.</div>
+            <div style="height: 1px; background: var(--line); margin-bottom: 20px;"></div>
+
+            <div id="actEmailPhase">
+                <label class="act-label" for="actEmailInput">Email ID</label>
+                <input id="actEmailInput" class="act-input" type="email" placeholder="your@email.com">
+
+                <div id="actOtpGroup" style="display:none; margin-top: 14px;">
+                    <label class="act-label" for="actOtpInput">6-Digit Verification Code</label>
+                    <input id="actOtpInput" class="act-input" type="text" maxlength="6" placeholder="123456"
+                           style="font-size:19px; font-weight:700; letter-spacing:7px; text-align:center; color: var(--accent);">
+                </div>
+
+                <button id="actMainBtn" class="act-btn" onclick="actSubmitAction()">📧 Send Verification Code</button>
+                <button id="actResendBtn" class="act-sec" onclick="actResendCode()" style="display:none;">🔁 Resend Code</button>
+            </div>
+
+            <div id="actFeedback" style="color: var(--muted); font-size: 12px; min-height: 18px; margin-top: 14px;"></div>
+
+            <div style="margin-top: 14px;">
+                <a id="actRecoveryLink" href="javascript:void(0)" onclick="toggleRecoveryMode()" style="color: var(--accent); font-size: 11.5px; font-weight: 600; text-decoration: none;">🔑 Lost Session? Recover Access</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating App Frame -->
+    <div class="app-frame">
+
+        <!-- ═══════════ SIDEBAR ═══════════ -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <div class="brand-name">Sen<span>ti</span>nel</div>
+                    <div class="brand-sub">Cyber Investigation</div>
+                </div>
+            </div>
+
+            <div class="nav-section">Workspace</div>
+            <div class="nav-item active" data-nav="dashboard" onclick="switchTab('dashboard', event)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard <span class="nav-badge" id="nav-badge-cases">0</span>
+            </div>
+            <div class="nav-item" data-nav="investigate" onclick="switchTab('investigate', event)">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Investigate EML
+            </div>
+            <div class="nav-item" data-nav="samples" onclick="switchTab('samples', event)">
+                <i class="fa-solid fa-vial"></i> Sample Analysis
+            </div>
+            <div class="nav-item" data-nav="reports" onclick="switchTab('reports', event)">
+                <i class="fa-solid fa-file-contract"></i> Forensic Reports
+            </div>
+            <div class="nav-item" data-nav="ledger" onclick="switchTab('ledger', event)">
+                <i class="fa-solid fa-link"></i> Blockchain Ledger
+            </div>
+
+            <div class="nav-sep"></div>
+            <div class="nav-section">System</div>
+            <div class="nav-item" onclick="verifyChain()">
+                <i class="fa-solid fa-shield-heart"></i> Verify Chain
+            </div>
+            <div class="nav-item" onclick="openCopilotModal()">
+                <i class="fa-solid fa-comment-dots"></i> AI Copilot
+            </div>
+
+            <div class="sidebar-status">
+                <div class="status-chip" id="system-status-badge"><span class="status-dot"></span> System Online</div>
+                <div class="engine-line" id="ollama-status-text">AI Engine: connecting…</div>
+            </div>
+
+            <div class="guard-card">
+                <div class="gc-icon"><i class="fa-solid fa-link"></i></div>
+                <div class="gc-title">Evidence Ledger</div>
+                <div class="gc-sub" id="guard-card-sub">Tamper-proof hash chain — verify integrity any time.</div>
+                <button class="gc-btn" onclick="verifyChain()">Verify Chain</button>
+            </div>
+        </aside>
+
+        <!-- ═══════════ MAIN COLUMN ═══════════ -->
+        <div class="main-col">
+
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="global-search" type="text" placeholder="Search cases, hashes, verdicts…">
+                    <span class="kbd">⌘K</span>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark theme"><i class="fa-solid fa-moon"></i></button>
+                    <div class="bell-wrap">
+                        <button class="icon-btn" id="bell-btn" onclick="toggleBell(event)" title="Recent verdicts">
+                            <i class="fa-regular fa-bell"></i><span class="dot-badge" id="bell-badge"></span>
+                        </button>
+                        <div class="bell-dropdown" id="bell-dropdown">
+                            <div class="bd-head">RECENT VERDICTS</div>
+                            <div id="bell-items"><div class="bell-empty">No verdicts yet.</div></div>
+                        </div>
+                    </div>
+                    <div class="avatar" title="Sentinel Operator">J</div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Page head -->
+                <div class="page-head">
+                    <div>
+                        <h1 id="page-title">Forensic Dashboard</h1>
+                        <p id="page-subtitle">Real-time email threat detection, geolocation tracing & tamper-proof evidence logging</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-ghost" onclick="refreshDashboard()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                        <button class="btn btn-ghost" onclick="verifyChain()"><i class="fa-solid fa-check-double"></i> Verify Ledger</button>
+                        <button class="btn btn-primary" onclick="switchTab('investigate', event)"><i class="fa-solid fa-plus"></i> New Investigation</button>
+                    </div>
+                </div>
+
+                <!-- Live Companion State Bar -->
+                <div class="companion-bar" id="companion-state-bar">
+                    <div class="companion-tag"><span id="companion-state-dot"></span> SENTINEL GUARD</div>
+                    <span id="companion-state-label">Initialising…</span>
+                    <span id="companion-risk-badge"></span>
+                    <span id="companion-state-msg"></span>
+                    <span id="companion-case-link" onclick="viewWatchCase()">📂 View case</span>
+                </div>
+
+                <!-- Mail Account & API Key card -->
+                <div class="card" style="padding: 16px 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="metric-tile blue" style="width: 38px; height: 38px;"><i class="fa-solid fa-key"></i></div>
+                            <div>
+                                <div style="font-size: 13.5px; font-weight: 700; color: var(--ink);">Mail Account & API Key Activation</div>
+                                <div style="font-size: 12px; color: var(--muted); margin-top: 2px;" id="api-key-status-desc">Status: Checking API key configuration…</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;" id="api-key-controls">
+                            <button class="btn btn-primary btn-sm" onclick="generateApiKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate API Key</button>
+                            <button class="btn btn-danger btn-sm" id="btn-revoke-key" onclick="revokeApiKey()" style="display: none;"><i class="fa-solid fa-ban"></i> Revoke Key</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Metrics Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-top"><span class="metric-label">Total Cases</span><span class="metric-tile blue"><i class="fa-solid fa-microchip"></i></span></div>
+                        <div class="metric-num"><span id="stat-total">0</span><span class="delta-chip delta-flat" id="delta-total">—</span></div>
+                        <div class="metric-caption">vs. previous 24 hours</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top"><span class="metric-label">Safe Email</span><span class="metric-tile green"><i class="fa-solid fa-shield-heart"></i></span></div>
+                        <div class="metric-num"><span id="stat-safe">0</span><span class="delta-chip delta-up" id="delta-safe">—</span></div>
+                        <div class="metric-caption">clean, no threat indicators</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top"><span class="metric-label">Suspicious</span><span class="metric-tile amber"><i class="fa-solid fa-triangle-exclamation"></i></span></div>
+                        <div class="metric-num"><span id="stat-suspicious">0</span><span class="delta-chip delta-warn" id="delta-suspicious">—</span></div>
+                        <div class="metric-caption">anomalies need review</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top"><span class="metric-label">Malicious</span><span class="metric-tile red"><i class="fa-solid fa-bug"></i></span></div>
+                        <div class="metric-num"><span id="stat-malicious">0</span><span class="delta-chip delta-bad" id="delta-malicious">—</span></div>
+                        <div class="metric-caption">active threats blocked</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-top"><span class="metric-label">Ledger Blocks</span><span class="metric-tile cyan"><i class="fa-solid fa-cubes"></i></span></div>
+                        <div class="metric-num"><span id="stat-ledger">0</span><span class="delta-chip delta-flat" id="delta-ledger">—</span></div>
+                        <div class="metric-caption">hash-chained evidence</div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 1: DASHBOARD OVERVIEW ═══════ -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <div class="analytics-grid">
+                        <!-- Left column -->
+                        <div class="analytics-col">
+                            <div class="card" style="margin-bottom: 0;">
+                                <div class="card-header">
+                                    <div class="card-title"><i class="fa-solid fa-chart-line"></i> Threat Activity</div>
+                                    <div class="chart-legend">
+                                        <span><span class="sw" style="background: var(--accent);"></span>All cases</span>
+                                        <span><span class="sw" style="background: var(--safe);"></span>Safe</span>
+                                        <span><span class="sw" style="background: var(--malicious);"></span>Malicious</span>
+                                    </div>
+                                </div>
+                                <div class="chart-box"><svg id="chart-trend" width="100%" height="220" preserveAspectRatio="none"></svg></div>
+                            </div>
+
+                            <div class="card" style="margin-bottom: 0;">
+                                <div class="card-header">
+                                    <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Evidence Ledger</div>
+                                    <span class="card-sub">newest first</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table>
+                                        <thead>
+                                            <tr><th>Block</th><th>Time</th><th>File Hash (SHA-256)</th><th>Verdict</th><th>Confidence</th></tr>
+                                        </thead>
+                                        <tbody id="recent-ledger-table">
+                                            <tr><td colspan="5" class="empty-row">Loading ledger entries…</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right column -->
+                        <div class="analytics-col">
+                            <div class="card" style="margin-bottom: 0;">
+                                <div class="card-header"><div class="card-title"><i class="fa-solid fa-chart-pie"></i> Verdict Split</div></div>
+                                <div class="donut-wrap">
+                                    <svg id="chart-donut" width="130" height="130"></svg>
+                                    <div class="donut-legend" id="donut-legend"></div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="margin-bottom: 0;">
+                                <div class="card-header"><div class="card-title"><i class="fa-solid fa-calendar-week"></i> Busiest Weekday</div></div>
+                                <div class="bars-wrap" id="chart-bars"></div>
+                            </div>
+
+                            <div class="card" style="margin-bottom: 0;">
+                                <div class="card-header"><div class="card-title"><i class="fa-solid fa-gauge-high"></i> Safe Mail Rate</div></div>
+                                <div class="gauge-wrap">
+                                    <svg id="chart-gauge" width="190" height="118"></svg>
+                                    <div class="gauge-value" id="gauge-value">—</div>
+                                    <div class="gauge-cap" id="gauge-cap">of all investigated mail</div>
+                                    <button class="gauge-btn" onclick="switchTab('ledger', event)">Show details</button>
+                                </div>
+                            </div>
+
+                            <div class="card ai-card" style="margin-bottom: 0;" id="ai-assistant-card">
+                                <div class="card-header" style="margin-bottom: 0;"><div class="card-title" style="margin: 0 auto;"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Assistant</div></div>
+                                <div class="ai-orb"></div>
+                                <p>Ask grounded questions about any investigation — evidence, risk, and recommended actions.</p>
+                                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openCopilotModal()"><i class="fa-solid fa-comments"></i> Ask Sentinel Copilot</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 2: INVESTIGATE EMAIL ═══════ -->
+                <div id="tab-investigate" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-file-arrow-up"></i> Upload Email Case File (.eml)</div>
+                        </div>
+                        <div class="dropzone" id="eml-dropzone" onclick="document.getElementById('eml-file-input').click()">
+                            <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                            <div class="dropzone-title">Click or Drag & Drop .eml file here</div>
+                            <div class="dropzone-sub">Supports raw RFC822 email files up to 16 MB. Static analysis only — attachments are never executed.</div>
+                            <input type="file" id="eml-file-input" accept=".eml" style="display: none;" onchange="handleFileUpload(this.files[0])">
+                        </div>
+                    </div>
+
+                    <div class="card loading-box" id="analysis-loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <h3>Sentinel Agent Investigating…</h3>
+                        <p>Parsing headers, checking origin IPs, analyzing URL typosquatting, running static file scans & hash-chaining evidence.</p>
+                    </div>
+
+                    <div class="card" id="analysis-results" style="display: none;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-shield-virus"></i> Sentinel AI Forensic Investigation Summary</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <div id="res-verdict-badge"></div>
+                                <button class="btn btn-primary btn-sm" onclick="openCopilotModal()"><i class="fa-solid fa-comments"></i> Ask Copilot</button>
+                            </div>
+                        </div>
+
+                        <div class="mini-stats">
+                            <div class="mini-stat"><div class="lbl">Explainable Risk Score</div><div class="val" id="res-risk-score">0 / 100</div></div>
+                            <div class="mini-stat"><div class="lbl">Investigation Confidence</div><div class="val" style="font-size: 15px; padding-top: 3px; color: var(--safe);" id="res-confidence">High (95%)</div></div>
+                            <div class="mini-stat"><div class="lbl">Sender Origin Geo</div><div class="val-sm" id="res-geo">N/A</div></div>
+                        </div>
+
+                        <div class="story-box">
+                            <div class="sb-title"><i class="fa-solid fa-book-open-reader"></i> Threat Narrative & Attack Intent</div>
+                            <div id="res-threat-story"></div>
+                        </div>
+
+                        <h4 style="font-size: 13.5px; color: var(--ink); margin-bottom: 12px;"><i class="fa-solid fa-circle-info" style="color: var(--accent);"></i> Why This Matters (Non-Technical Summary)</h4>
+                        <div class="wtm-grid">
+                            <div class="wtm-tile wtm-what"><div class="wtm-lbl">What happened</div><div id="wtm-what">-</div></div>
+                            <div class="wtm-tile wtm-why"><div class="wtm-lbl">Why it is suspicious</div><div id="wtm-why">-</div></div>
+                            <div class="wtm-tile wtm-impact"><div class="wtm-lbl">Potential impact</div><div id="wtm-impact">-</div></div>
+                            <div class="wtm-tile wtm-action"><div class="wtm-lbl">Recommended action</div><div id="wtm-action">-</div></div>
+                        </div>
+
+                        <div class="results-2col">
+                            <div class="results-panel">
+                                <div class="rp-title"><i class="fa-solid fa-calculator"></i> Risk Score Additions</div>
+                                <div id="res-risk-breakdown"></div>
+                            </div>
+                            <div class="results-panel">
+                                <div class="rp-title"><i class="fa-solid fa-clock-rotate-left"></i> Investigation Timeline</div>
+                                <div id="res-timeline" style="max-height: 210px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+
+                        <div class="graph-shell">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px 10px;">
+                                <div style="font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-diagram-project" style="color: var(--cyan);"></i> Evidence Entity Relationship Graph</div>
+                                <span style="font-size: 10.5px; color: var(--muted);">Sender → Domain → IP → URL → Attachment</span>
+                            </div>
+                            <svg id="evidence-graph-svg" width="700" height="250" style="width: 100%; height: 250px;"></svg>
+                        </div>
+
+                        <details class="tech">
+                            <summary><i class="fa-solid fa-code"></i> Expand Deep Technical Forensic Details</summary>
+                            <div class="code-block" id="res-technical-details" style="margin-top: 12px;"></div>
+                        </details>
+
+                        <div class="results-footer">
+                            <div id="res-blockchain-ref">Blockchain Ledger Block: Recorded</div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="openCopilotModal()"><i class="fa-solid fa-comments"></i> Copilot Assistant</button>
+                                <button class="btn btn-ghost btn-sm" onclick="switchTab('reports')"><i class="fa-solid fa-file-lines"></i> View Full Report</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 3: SAMPLE ANALYSIS ═══════ -->
+                <div id="tab-samples" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-vial-circle-check"></i> Built-in Test Cases</div>
+                            <span class="card-sub">each run performs a full forensic investigation</span>
+                        </div>
+                        <div class="samples-grid" id="samples-container"></div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 4: FORENSIC REPORTS ═══════ -->
+                <div id="tab-reports" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-folder-open"></i> Generated Forensic Reports</div>
+                            <span class="card-sub">reports/</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr><th>Report File</th><th>Verdict</th><th>Generated</th><th>Size</th><th>Action</th></tr>
+                                </thead>
+                                <tbody id="reports-table">
+                                    <tr><td colspan="5" class="empty-row">Loading forensic reports…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════ TAB 5: BLOCKCHAIN LEDGER ═══════ -->
+                <div id="tab-ledger" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-link"></i> Tamper-Proof Cryptographic Hash Chain</div>
+                            <button class="btn btn-primary btn-sm" onclick="verifyChain()"><i class="fa-solid fa-shield-heart"></i> Re-verify Chain Integrity</button>
+                        </div>
+                        <div id="ledger-verification-status" style="margin-bottom: 16px;"></div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr><th>Index</th><th>Timestamp (UTC)</th><th>File Hash (SHA-256)</th><th>Verdict</th><th>Prev Block Hash</th><th>Block Hash</th></tr>
+                                </thead>
+                                <tbody id="full-ledger-table">
+                                    <tr><td colspan="6" class="empty-row">Loading blockchain ledger…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main-col -->
+    </div><!-- /app-frame -->
+
+    <!-- Report View Modal -->
+    <div class="modal-overlay" id="report-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div style="font-size: 14px; font-weight: 700; color: var(--ink);" id="modal-report-title">Forensic Report</div>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="code-block" id="modal-report-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Display Modal -->
+    <div class="modal-overlay" id="apikey-modal">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header">
+                <div style="font-size: 14px; font-weight: 700; color: var(--ink);"><i class="fa-solid fa-key" style="color: var(--safe);"></i> New API Key Generated</div>
+                <button class="close-modal" onclick="closeApiKeyModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p style="color: var(--muted); font-size: 13px; margin-bottom: 16px;">
+                    Save this key now! For security reasons, full raw API keys are <strong>never stored or displayed again</strong>.
+                </p>
+                <div class="code-block" id="raw-key-display" style="font-size: 15px; font-weight: 700; color: #7BFFB0; word-break: break-all; margin-bottom: 20px;">sk_sentinel_…</div>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn btn-primary" onclick="copyApiKeyToClipboard()"><i class="fa-solid fa-copy"></i> Copy to Clipboard</button>
+                    <button class="btn btn-ghost" onclick="closeApiKeyModal()">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════ API Key Helpers ═══════════════
+        function getStoredApiKey() {
+            return localStorage.getItem('sentinel_api_key') || '';
+        }
+
+        function setStoredApiKey(key) {
+            if (key) {
+                localStorage.setItem('sentinel_api_key', key);
+            } else {
+                localStorage.removeItem('sentinel_api_key');
+            }
+        }
+
+        // Authenticated fetch wrapper (self-healing out-of-the-box)
+        async function authFetch(url, options = {}) {
+            options.headers = options.headers || {};
+            let key = getStoredApiKey();
+            if (key) {
+                options.headers['Authorization'] = `Bearer ${key}`;
+            }
+
+            let res = await fetch(url, options);
+            if (res.status === 401) {
+                console.warn('API Request 401. Auto-generating fresh key for seamless execution...');
+                try {
+                    const genRes = await fetch('/api/keys/generate', { method: 'POST' });
+                    const genData = await genRes.json();
+                    if (genData.success && genData.raw_key) {
+                        setStoredApiKey(genData.raw_key);
+                        options.headers['Authorization'] = `Bearer ${genData.raw_key}`;
+                        res = await fetch(url, options);
+                        fetchKeyStatus();
+                    }
+                } catch (err) {
+                    console.error('Auto key renewal error:', err);
+                }
+            }
+            return res;
+        }
+
+        // Fetch Key Status
+        async function fetchKeyStatus() {
+            try {
+                const res = await fetch('/api/keys/status');
+                const data = await res.json();
+                const desc = document.getElementById('api-key-status-desc');
+                const btnRevoke = document.getElementById('btn-revoke-key');
+
+                if (data.status === 'active') {
+                    desc.innerHTML = `<span style="color:var(--safe); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Active API Key:</span> <code class="mono">${data.masked}</code> <span style="color:var(--muted);">(Created: ${new Date(data.created_at).toLocaleDateString()})</span>`;
+                    btnRevoke.style.display = 'inline-flex';
+                } else if (data.status === 'revoked') {
+                    desc.innerHTML = `<span style="color:var(--malicious); font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> API Key Revoked:</span> Generate a new key to authorize requests.`;
+                    btnRevoke.style.display = 'none';
+                } else {
+                    desc.innerHTML = `<span style="color:var(--muted);"><i class="fa-solid fa-circle-info"></i> No API key activated. Click "Generate API Key" to activate.</span>`;
+                    btnRevoke.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Failed to fetch key status:', err);
+            }
+        }
+
+        async function generateApiKey() {
+            try {
+                const res = await fetch('/api/keys/generate', { method: 'POST' });
+                const data = await res.json();
+                if (data.success && data.raw_key) {
+                    setStoredApiKey(data.raw_key);
+                    document.getElementById('raw-key-display').innerText = data.raw_key;
+                    document.getElementById('apikey-modal').classList.add('active');
+                    fetchKeyStatus();
+                } else {
+                    alert('Failed to generate key');
+                }
+            } catch (err) {
+                alert('Key generation error: ' + err.message);
+            }
+        }
+
+        async function revokeApiKey() {
+            if (!confirm('Are you sure you want to revoke the active API Key? Protected endpoints will return 401 Unauthorized until a new key is generated.')) return;
+            try {
+                const res = await fetch('/api/keys/revoke', { method: 'POST' });
+                await res.json();
+                setStoredApiKey('');
+                fetchKeyStatus();
+                alert('API Key revoked.');
+            } catch (err) {
+                alert('Revocation error: ' + err.message);
+            }
+        }
+
+        function copyApiKeyToClipboard() {
+            const rawKey = document.getElementById('raw-key-display').innerText.trim();
+            navigator.clipboard.writeText(rawKey).then(() => {
+                alert('API Key copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy key automatically.');
+            });
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apikey-modal').classList.remove('active');
+        }
+
+        // ═══════════════ Tab switching ═══════════════
+        function switchTab(tabId, evt) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+            const clickedNav = evt?.target?.closest('.nav-item');
+            if (clickedNav) clickedNav.classList.add('active');
+            else {
+                const navForTab = document.querySelector(`.nav-item[data-nav="${tabId}"]`);
+                if (navForTab) navForTab.classList.add('active');
+            }
+            const tabEl = document.getElementById(`tab-${tabId}`);
+            if (tabEl) tabEl.classList.add('active');
+
+            if (tabId === 'dashboard') refreshDashboard();
+            if (tabId === 'samples') loadSamples();
+            if (tabId === 'reports') loadReports();
+            if (tabId === 'ledger') loadLedger();
+        }
+
+        // ═══════════════ System status ═══════════════
+        async function refreshDashboard() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                document.getElementById('stat-total').innerText = data.total_investigations;
+                document.getElementById('stat-safe').innerText = data.safe_count;
+                document.getElementById('stat-suspicious').innerText = data.suspicious_count;
+                document.getElementById('stat-malicious').innerText = data.malicious_count;
+                document.getElementById('stat-ledger').innerText = data.total_investigations;
+                const navBadge = document.getElementById('nav-badge-cases');
+                if (navBadge) navBadge.innerText = data.total_investigations;
+
+                const engineText = document.getElementById('ollama-status-text');
+                if (data.llm_provider === 'openai' && data.llm_available) {
+                    engineText.innerText = 'AI Engine: Remote LLM (Live)';
+                    engineText.style.color = 'var(--safe)';
+                } else if (data.ollama_available) {
+                    engineText.innerText = 'AI Engine: Local Ollama (Active)';
+                    engineText.style.color = 'var(--safe)';
+                } else {
+                    engineText.innerText = 'AI Engine: Deterministic Pipeline';
+                    engineText.style.color = 'var(--muted)';
+                }
+
+                fetchKeyStatus();
+                loadRecentLedger();
+            } catch (err) {
+                console.error('Failed to fetch status:', err);
+            }
+        }
+
+        // ═══════════════ Samples ═══════════════
+        async function loadSamples() {
+            const container = document.getElementById('samples-container');
+            container.innerHTML = '<div style="color:var(--muted); font-size:13px;">Loading sample cases…</div>';
+            try {
+                const res = await fetch('/api/samples');
+                const data = await res.json();
+
+                container.innerHTML = '';
+                data.samples.forEach(s => {
+                    const card = document.createElement('div');
+                    card.className = 'sample-card';
+                    card.innerHTML = `
+                        <div>
+                            <div class="sample-title">${s.title}</div>
+                            <div class="sample-desc">${s.description}</div>
+                            <div style="margin-bottom:14px;">
+                                <span class="verdict-badge verdict-${s.expected_verdict}">${s.expected_verdict}</span>
+                                <span class="mono" style="font-size:11px; color:var(--muted); margin-left:8px;">${s.filename}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="runSample('${s.filename}')">
+                            <i class="fa-solid fa-play"></i> Run Investigation
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                container.innerHTML = '<div style="color:var(--malicious); font-size:13px;">Failed to load samples</div>';
+            }
+        }
+
+        async function runSample(sampleFilename) {
+            switchTab('investigate');
+            document.getElementById('analysis-loading').style.display = 'block';
+            document.getElementById('analysis-results').style.display = 'none';
+
+            try {
+                const res = await authFetch('/api/analyze-sample', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sample: sampleFilename })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Investigation Error: ' + data.error);
+                } else {
+                    displayResults(data);
+                }
+            } catch (err) {
+                alert('Analysis failed: ' + err.message);
+            } finally {
+                document.getElementById('analysis-loading').style.display = 'none';
+            }
+        }
+
+        async function handleFileUpload(file) {
+            if (!file) return;
+            if (!file.name.toLowerCase().endsWith('.eml')) {
+                alert('Please select a valid .eml file!');
+                return;
+            }
+
+            document.getElementById('analysis-loading').style.display = 'block';
+            document.getElementById('analysis-results').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await authFetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    displayResults(data);
+                }
+            } catch (err) {
+                alert('Upload analysis failed: ' + err.message);
+            } finally {
+                document.getElementById('analysis-loading').style.display = 'none';
+            }
+        }
+
+        let _currentCaseData = null;
+
+        // ═══════════════ Results ═══════════════
+        function displayResults(data) {
+            _currentCaseData = data;
+            document.getElementById('analysis-results').style.display = 'block';
+
+            const verdict = data.verdict || 'SAFE';
+            document.getElementById('res-verdict-badge').innerHTML = `<span class="verdict-badge verdict-${verdict}">${verdict}</span>`;
+            document.getElementById('res-risk-score').innerText = `${data.risk_score} / 100`;
+            document.getElementById('res-confidence').innerText = `${data.confidence || 'Medium'} (${data.confidence_score || 80}%)`;
+
+            const tech = data.technical_details || {};
+            const geo = tech.geolocation || {};
+            const geoText = geo.city ? `${geo.city}, ${geo.country || ''}` : (data.geolocation_summary || 'N/A');
+            document.getElementById('res-geo').innerText = geoText;
+
+            const storyEl = document.getElementById('res-threat-story');
+            if (storyEl) {
+                storyEl.innerText = data.threat_story || data.summary || 'No threat narrative available.';
+            }
+
+            const wtm = data.why_this_matters || {};
+            document.getElementById('wtm-what').innerText = wtm.what || 'Investigation completed.';
+            document.getElementById('wtm-why').innerText = wtm.why || 'Standard email forensic evaluation.';
+            document.getElementById('wtm-impact').innerText = wtm.impact || 'No adverse impact detected.';
+            document.getElementById('wtm-action').innerText = wtm.action || 'Proceed normally.';
+
+            const breakdownEl = document.getElementById('res-risk-breakdown');
+            breakdownEl.innerHTML = '';
+            const breakdownList = data.score_breakdown || [];
+            if (breakdownList.length > 0) {
+                breakdownList.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'breakdown-row';
+                    div.innerHTML = `<span>${item.reason}</span> <strong>+${item.points}</strong>`;
+                    breakdownEl.appendChild(div);
+                });
+            } else {
+                breakdownEl.innerHTML = '<div class="breakdown-clean">✓ 0 Risk Additions — Clean Email</div>';
+            }
+
+            const timelineEl = document.getElementById('res-timeline');
+            timelineEl.innerHTML = '';
+            (data.timeline || []).forEach(step => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.innerHTML = `<span class="t-ts">${step.timestamp}</span> <span class="t-phase">[${step.phase}]</span> <span class="t-event">${step.event}</span>`;
+                timelineEl.appendChild(item);
+            });
+
+            renderEvidenceGraph(data.evidence_graph);
+
+            document.getElementById('res-technical-details').innerText = JSON.stringify(tech, null, 2);
+
+            if (data.ledger_block) {
+                document.getElementById('res-blockchain-ref').innerText = `Logged to HashChain (Block #${data.ledger_block.index ?? 'OK'})`;
+            }
+
+            refreshDashboard();
+        }
+
+        function renderEvidenceGraph(graph) {
+            const svg = document.getElementById('evidence-graph-svg');
+            if (!svg || !graph) return;
+            svg.innerHTML = '';
+
+            const nodes = graph.nodes || [];
+            const edges = graph.edges || [];
+
+            const nodePos = {};
+            const count = nodes.length;
+            const cx = 350, cy = 130, radius = 95;
+
+            nodes.forEach((n, idx) => {
+                const angle = (idx / Math.max(1, count)) * 2 * Math.PI - Math.PI / 2;
+                const x = idx === 0 ? cx : cx + Math.cos(angle) * radius * 2.2;
+                const y = idx === 0 ? cy : cy + Math.sin(angle) * radius * 0.85;
+                nodePos[n.id] = { x, y, label: n.label, type: n.type };
+            });
+
+            edges.forEach(e => {
+                const p1 = nodePos[e.from];
+                const p2 = nodePos[e.to];
+                if (p1 && p2) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+                    line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+                    line.setAttribute('stroke', 'rgba(10, 36, 233, 0.28)');
+                    line.setAttribute('stroke-width', '1.6');
+                    line.setAttribute('stroke-dasharray', '5 4');
+                    svg.appendChild(line);
+                }
+            });
+
+            const colors = { case: '#0A24E9', sender: '#0891B2', domain: '#7C3AED', ip: '#D97E00', url: '#D64545', attachment: '#2E9E5B' };
+
+            Object.keys(nodePos).forEach(id => {
+                const n = nodePos[id];
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y);
+                circle.setAttribute('r', '16');
+                circle.setAttribute('fill', '#FFFFFF');
+                circle.setAttribute('stroke', colors[n.type] || '#0A24E9');
+                circle.setAttribute('stroke-width', '2.5');
+                g.appendChild(circle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', n.x); text.setAttribute('y', n.y + 27);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', 'var(--ink, #0B0D17)');
+                text.setAttribute('font-size', '10.5');
+                text.setAttribute('font-weight', '600');
+                text.setAttribute('font-family', 'Inter, sans-serif');
+                text.textContent = n.label.length > 20 ? n.label.substring(0, 18) + '…' : n.label;
+                g.appendChild(text);
+
+                svg.appendChild(g);
+            });
+        }
+
+        // ═══════════════ Reports ═══════════════
+        async function loadReports() {
+            const table = document.getElementById('reports-table');
+            table.innerHTML = '<tr><td colspan="5" class="empty-row">Loading forensic reports…</td></tr>';
+            try {
+                const res = await authFetch('/api/reports');
+                const data = await res.json();
+
+                if (res.status === 401) {
+                    table.innerHTML = '<tr><td colspan="5" style="color:var(--malicious); text-align:center;">401 Unauthorized: Generate an API Key to view reports.</td></tr>';
+                    return;
+                }
+
+                if (!data.reports || data.reports.length === 0) {
+                    table.innerHTML = '<tr><td colspan="5" class="empty-row">No reports generated yet.</td></tr>';
+                    return;
+                }
+
+                table.innerHTML = '';
+                data.reports.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="mono td-strong" style="font-size:11.5px;">${r.filename}</td>
+                        <td><span class="verdict-badge verdict-${r.verdict}">${r.verdict}</span></td>
+                        <td>${new Date(r.modified).toLocaleString()}</td>
+                        <td>${(r.size_bytes / 1024).toFixed(1)} KB</td>
+                        <td>
+                            <button class="btn btn-ghost btn-sm" onclick="viewReport('${r.filename}')">
+                                <i class="fa-solid fa-eye"></i> View
+                            </button>
+                        </td>
+                    `;
+                    table.appendChild(tr);
+                });
+            } catch (err) {
+                table.innerHTML = '<tr><td colspan="5" style="color:var(--malicious); text-align:center;">Failed to load reports</td></tr>';
+            }
+        }
+
+        async function viewReport(filename) {
+            try {
+                const res = await authFetch(`/api/reports/${filename}`);
+                const data = await res.json();
+                if (res.status === 401) {
+                    alert('401 Unauthorized: API Key required.');
+                    return;
+                }
+                document.getElementById('modal-report-title').innerText = `Report: ${data.filename}`;
+                document.getElementById('modal-report-content').innerText = data.content;
+                document.getElementById('report-modal').classList.add('active');
+            } catch (err) {
+                alert('Could not read report file');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('report-modal').classList.remove('active');
+        }
+
+        // ═══════════════ Blockchain Ledger ═══════════════
+        async function loadLedger() {
+            const table = document.getElementById('full-ledger-table');
+            table.innerHTML = '<tr><td colspan="6" class="empty-row">Loading blockchain ledger…</td></tr>';
+
+            try {
+                const res = await authFetch('/api/ledger');
+                const data = await res.json();
+
+                if (res.status === 401) {
+                    table.innerHTML = '<tr><td colspan="6" style="color:var(--malicious); text-align:center;">401 Unauthorized: Generate an API Key to inspect ledger.</td></tr>';
+                    return;
+                }
+
+                const statusBox = document.getElementById('ledger-verification-status');
+                if (data.integrity.valid) {
+                    statusBox.innerHTML = `
+                        <div class="ledger-ok"><i class="fa-solid fa-circle-check"></i> Blockchain Ledger Verified: <strong>100% Intact</strong> (${data.blocks.length} Blocks, 0 Tampering Detected)</div>
+                    `;
+                } else {
+                    statusBox.innerHTML = `
+                        <div class="ledger-bad"><i class="fa-solid fa-triangle-exclamation"></i> Ledger Integrity Compromised at Block #${data.integrity.broken_at}!</div>
+                    `;
+                }
+
+                updateAnalytics(data.blocks);
+
+                table.innerHTML = '';
+                data.blocks.slice().reverse().forEach(b => {
+                    const tr = document.createElement('tr');
+                    const v = b.data?.ai_verdict || 'N/A';
+                    tr.innerHTML = `
+                        <td class="mono td-strong" style="font-weight:700;">#${b.index}</td>
+                        <td>${new Date(b.timestamp).toLocaleString()}</td>
+                        <td class="mono" style="font-size:10.5px;">${b.data?.file_hash || 'n/a'}</td>
+                        <td><span class="verdict-badge verdict-${v}">${v}</span></td>
+                        <td class="mono" style="font-size:10.5px; color:var(--muted);">${(b.prev_hash || '').substring(0, 16)}…</td>
+                        <td class="mono" style="font-size:10.5px; color:var(--accent);">${(b.hash || '').substring(0, 16)}…</td>
+                    `;
+                    table.appendChild(tr);
+                });
+            } catch (err) {
+                table.innerHTML = '<tr><td colspan="6" style="color:var(--malicious); text-align:center;">Failed to load ledger</td></tr>';
+            }
+        }
+
+        async function loadRecentLedger() {
+            const table = document.getElementById('recent-ledger-table');
+            try {
+                const res = await authFetch('/api/ledger');
+                const data = await res.json();
+
+                if (res.status === 401) {
+                    table.innerHTML = '<tr><td colspan="5" class="empty-row">API Key required to view ledger entries.</td></tr>';
+                    return;
+                }
+
+                updateAnalytics(data.blocks);
+
+                table.innerHTML = '';
+                const recent = data.blocks.slice(-6).reverse();
+                recent.forEach(b => {
+                    const tr = document.createElement('tr');
+                    const v = b.data?.ai_verdict || 'N/A';
+                    tr.innerHTML = `
+                        <td class="mono td-strong" style="font-weight:700;">#${b.index}</td>
+                        <td>${new Date(b.timestamp).toLocaleString()}</td>
+                        <td class="mono" style="font-size:10.5px;">${b.data?.file_hash || 'n/a'}</td>
+                        <td><span class="verdict-badge verdict-${v}">${v}</span></td>
+                        <td>${b.data?.confidence_score ?? 100}%</td>
+                    `;
+                    table.appendChild(tr);
+                });
+            } catch (err) {
+                table.innerHTML = '<tr><td colspan="5">Failed to fetch ledger</td></tr>';
+            }
+        }
+
+        async function verifyChain() {
+            loadLedger();
+        }
+
+        // ═══════════════ Analytics: charts fed by real ledger data ═══════════════
+        function updateAnalytics(blocks) {
+            if (!blocks || !blocks.length) return;
+
+            const now = Date.now();
+            const dayMs = 24 * 3600 * 1000;
+
+            // Per-day buckets for the last 14 days
+            const days = [];
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date(now - i * dayMs);
+                days.push({ key: d.toISOString().slice(0, 10), label: d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), total: 0, safe: 0, malicious: 0 });
+            }
+            const byKey = Object.fromEntries(days.map(d => [d.key, d]));
+
+            // Weekday buckets + last-24h counters
+            const weekdayCounts = [0, 0, 0, 0, 0, 0, 0];
+            let last24 = { total: 0, safe: 0, suspicious: 0, malicious: 0 };
+
+            blocks.forEach(b => {
+                const t = new Date(b.timestamp);
+                if (isNaN(t)) return;
+                const key = t.toISOString().slice(0, 10);
+                if (byKey[key]) byKey[key].total++;
+                const v = (b.data?.ai_verdict || '').toUpperCase();
+                if (byKey[key] && v === 'SAFE') byKey[key].safe++;
+                if (byKey[key] && v === 'MALICIOUS') byKey[key].malicious++;
+                weekdayCounts[(t.getDay() + 6) % 7]++;   // Mon..Sun
+                if (now - t.getTime() < dayMs) {
+                    last24.total++;
+                    if (v === 'SAFE') last24.safe++;
+                    if (v === 'SUSPICIOUS') last24.suspicious++;
+                    if (v === 'MALICIOUS') last24.malicious++;
+                }
+            });
+
+            renderDeltaChips(last24);
+            renderTrendChart(days);
+            renderWeekdayBars(weekdayCounts);
+            renderDonut(blocks);
+            renderGauge(blocks);
+            renderBell(blocks);
+        }
+
+        function setChip(id, text, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text;
+            el.className = 'delta-chip ' + cls;
+        }
+
+        function renderDeltaChips(c) {
+            setChip('delta-total', c.total ? `+${c.total} today` : '—', c.total ? 'delta-up' : 'delta-flat');
+            setChip('delta-safe', c.safe ? `+${c.safe} today` : '—', c.safe ? 'delta-up' : 'delta-flat');
+            setChip('delta-suspicious', c.suspicious ? `+${c.suspicious} today` : '—', c.suspicious ? 'delta-warn' : 'delta-flat');
+            setChip('delta-malicious', c.malicious ? `+${c.malicious} today` : '—', c.malicious ? 'delta-bad' : 'delta-flat');
+            setChip('delta-ledger', c.total ? `+${c.total} today` : '—', c.total ? 'delta-up' : 'delta-flat');
+        }
+
+        function renderTrendChart(days) {
+            const svg = document.getElementById('chart-trend');
+            if (!svg) return;
+            const W = svg.clientWidth || 640, H = 220;
+            const padL = 34, padR = 12, padT = 14, padB = 26;
+            const iw = W - padL - padR, ih = H - padT - padB;
+            const maxV = Math.max(4, ...days.map(d => d.total));
+            const x = i => padL + (iw * i) / Math.max(1, days.length - 1);
+            const y = v => padT + ih - (ih * v) / maxV;
+
+            let html = '';
+            // horizontal gridlines
+            for (let g = 0; g <= 3; g++) {
+                const gy = padT + (ih * g) / 3;
+                const val = Math.round(maxV - (maxV * g) / 3);
+                html += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="var(--line)" stroke-dasharray="3 5"/>`;
+                html += `<text x="${padL - 7}" y="${gy + 3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${val}</text>`;
+            }
+            // x labels (every other day)
+            days.forEach((d, i) => {
+                if (i % 3 === 0 || i === days.length - 1) {
+                    html += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" font-size="9" fill="var(--muted)">${d.label}</text>`;
+                }
+            });
+            const linePath = (vals) => vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`).join(' ');
+            const areaPath = (vals) => linePath(vals) + ` L${x(vals.length - 1)},${y(0)} L${x(0)},${y(0)} Z`;
+
+            const totals = days.map(d => d.total);
+            const safes = days.map(d => d.safe);
+            const mal = days.map(d => d.malicious);
+
+            html += `<path d="${areaPath(totals)}" fill="rgba(10,36,233,0.07)"/>`;
+            html += `<path d="${areaPath(safes)}" fill="rgba(46,158,91,0.08)"/>`;
+            html += `<path d="${linePath(totals)}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>`;
+            html += `<path d="${linePath(safes)}" fill="none" stroke="var(--safe)" stroke-width="1.6" stroke-dasharray="1 0" opacity="0.85"/>`;
+            html += `<path d="${linePath(mal)}" fill="none" stroke="var(--malicious)" stroke-width="1.6" opacity="0.85"/>`;
+            totals.forEach((v, i) => {
+                if (v > 0) html += `<circle cx="${x(i)}" cy="${y(v)}" r="2.6" fill="var(--accent)"><title>${days[i].label}: ${v} case(s)</title></circle>`;
+            });
+
+            svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+            svg.innerHTML = html;
+        }
+
+        function renderWeekdayBars(counts) {
+            const wrap = document.getElementById('chart-bars');
+            if (!wrap) return;
+            const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const maxV = Math.max(1, ...counts);
+            const hotIdx = counts.indexOf(Math.max(...counts));
+            wrap.innerHTML = counts.map((c, i) => {
+                const hPct = Math.round((c / maxV) * 100);
+                const h = Math.max(6, Math.round(112 * (c / maxV)));
+                return `<div class="bar-col">
+                    <div class="bar-val">${c || ''}</div>
+                    <div class="bar ${i === hotIdx && c > 0 ? 'hot' : ''}" style="height:${h}px" title="${names[i]}: ${c} case(s)"></div>
+                    <div class="bar-day ${i === hotIdx ? 'hot' : ''}">${names[i]}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDonut(blocks) {
+            const svg = document.getElementById('chart-donut');
+            if (!svg) return;
+            const counts = { SAFE: 0, SUSPICIOUS: 0, MALICIOUS: 0 };
+            blocks.forEach(b => {
+                const v = (b.data?.ai_verdict || '').toUpperCase();
+                if (v in counts) counts[v]++;
+            });
+            const total = counts.SAFE + counts.SUSPICIOUS + counts.MALICIOUS;
+            if (!total) return;
+
+            const colors = { SAFE: '#2E9E5B', SUSPICIOUS: '#D97E00', MALICIOUS: '#D64545' };
+            const R = 48, C = 2 * Math.PI * R;
+            let offset = 0, html = '';
+            Object.keys(counts).forEach(k => {
+                if (!counts[k]) return;
+                const frac = counts[k] / total;
+                html += `<circle cx="65" cy="65" r="${R}" fill="none" stroke="${colors[k]}" stroke-width="15"
+                    stroke-dasharray="${(frac * C).toFixed(2)} ${C}" stroke-dashoffset="${(-offset * C).toFixed(2)}"
+                    transform="rotate(-90 65 65)" stroke-linecap="butt"><title>${k}: ${counts[k]}</title></circle>`;
+                offset += frac;
+            });
+            html += `<text x="65" y="62" text-anchor="middle" class="donut-center">${total}</text>`;
+            html += `<text x="65" y="80" text-anchor="middle" font-size="9.5" fill="var(--muted)" font-weight="600">TOTAL CASES</text>`;
+            svg.innerHTML = html;
+
+            const legend = document.getElementById('donut-legend');
+            if (legend) {
+                legend.innerHTML = Object.keys(counts).map(k =>
+                    `<div class="row"><span class="sw" style="background:${colors[k]}"></span> ${k.charAt(0) + k.slice(1).toLowerCase()} <b>${counts[k]}</b></div>`
+                ).join('');
+            }
+        }
+
+        function renderGauge(blocks) {
+            const svg = document.getElementById('chart-gauge');
+            if (!svg) return;
+            let safe = 0, total = 0;
+            blocks.forEach(b => {
+                const v = (b.data?.ai_verdict || '').toUpperCase();
+                if (v) total++;
+                if (v === 'SAFE') safe++;
+            });
+            const pct = total ? Math.round((safe / total) * 100) : 0;
+
+            const cx = 95, cy = 100, R = 74;
+            const ticks = 36;
+            let html = '';
+            for (let i = 0; i < ticks; i++) {
+                const angle = Math.PI - (Math.PI * i) / (ticks - 1);   // 180° .. 0°
+                const active = i / (ticks - 1) <= pct / 100;
+                const inner = R - 10;
+                const x1 = cx + Math.cos(angle) * inner, y1 = cy - Math.sin(angle) * inner;
+                const x2 = cx + Math.cos(angle) * R, y2 = cy - Math.sin(angle) * R;
+                html += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+                    stroke="${active ? '#2E9E5B' : 'var(--line-strong)'}" stroke-width="4" stroke-linecap="round"/>`;
+            }
+            svg.innerHTML = html;
+
+            const val = document.getElementById('gauge-value');
+            const cap = document.getElementById('gauge-cap');
+            if (val) val.innerText = pct + '%';
+            if (cap) cap.innerText = total ? `${safe} of ${total} investigated mails were clean` : 'of all investigated mail';
+        }
+
+        // ═══════════════ Notification bell ═══════════════
+        function renderBell(blocks) {
+            const badge = document.getElementById('bell-badge');
+            const wrap = document.getElementById('bell-items');
+            if (!badge || !wrap) return;
+            const dayMs = 24 * 3600 * 1000;
+            const now = Date.now();
+            const recent = blocks.slice(-5).reverse();
+            const todayCount = blocks.filter(b => now - new Date(b.timestamp).getTime() < dayMs).length;
+
+            badge.style.display = todayCount ? 'block' : 'none';
+
+            if (!recent.length) {
+                wrap.innerHTML = '<div class="bell-empty">No verdicts yet.</div>';
+                return;
+            }
+            wrap.innerHTML = recent.map(b => {
+                const v = (b.data?.ai_verdict || 'N/A').toUpperCase();
+                const conf = b.data?.confidence_score ?? '—';
+                return `<div class="bd-item">
+                    <span class="verdict-badge verdict-${v}">${v}</span>
+                    <div>Block #${b.index} <div class="mono">${new Date(b.timestamp).toLocaleString()} · ${conf}% conf.</div></div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleBell(evt) {
+            evt.stopPropagation();
+            document.getElementById('bell-dropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', (e) => {
+            const dd = document.getElementById('bell-dropdown');
+            if (dd && !e.target.closest('.bell-wrap')) dd.classList.remove('open');
+        });
+
+        // ═══════════════ Theme toggle ═══════════════
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const btn = document.getElementById('theme-toggle');
+            if (btn) btn.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+            localStorage.setItem('sentinel_theme', theme);
+            // redraw theme-aware charts
+            if (typeof _lastBlocks !== 'undefined' && _lastBlocks) updateAnalytics(_lastBlocks);
+        }
+        let _lastBlocks = null;
+        const _origUpdateAnalytics = updateAnalytics;
+        updateAnalytics = function (blocks) { _lastBlocks = blocks; _origUpdateAnalytics(blocks); };
+
+        function toggleTheme() {
+            const cur = document.documentElement.getAttribute('data-theme') || 'light';
+            applyTheme(cur === 'dark' ? 'light' : 'dark');
+        }
+        applyTheme(localStorage.getItem('sentinel_theme') || 'light');
+
+        // ═══════════════ Global search filter ═══════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            const s = document.getElementById('global-search');
+            if (s) {
+                s.addEventListener('input', () => {
+                    const q = s.value.toLowerCase();
+                    document.querySelectorAll('#recent-ledger-table tr').forEach(tr => {
+                        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                });
+            }
+        });
+
+        // Drag and drop events
+        const dropzone = document.getElementById('eml-dropzone');
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFileUpload(e.dataTransfer.files[0]);
+            }
+        });
+
+        // ═══════════════ EMAIL ACTIVATION & RECOVERY GATE ═══════════════
+        let _actMode = 'request';
+        let _actEmail = '';
+        let _resendTimer = null;
+        let _resendSeconds = 0;
+
+        function getSessionToken() {
+            return localStorage.getItem('sentinel_session_token') || '';
+        }
+
+        function setSessionToken(tok) {
+            if (tok) { localStorage.setItem('sentinel_session_token', tok); }
+            else { localStorage.removeItem('sentinel_session_token'); }
+        }
+
+        const _originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            options.headers = options.headers || {};
+            const tok = getSessionToken();
+            if (tok && !options.headers['Authorization']) {
+                options.headers['Authorization'] = 'Bearer ' + tok;
+                options.headers['X-Session-Token'] = tok;
+            }
+            return _originalFetch(url, options);
+        };
+
+        async function checkActivation() {
+            hideActivationOverlay();
+            return true;
+        }
+
+        function hideActivationOverlay() {
+            const ov = document.getElementById('activationOverlay');
+            if (ov) {
+                ov.style.opacity = '0';
+                ov.style.visibility = 'hidden';
+                setTimeout(() => ov.style.display = 'none', 400);
+            }
+        }
+
+        function showActivationOverlay() {
+            const ov = document.getElementById('activationOverlay');
+            if (ov) {
+                ov.style.display = 'flex';
+                ov.style.opacity = '1';
+                ov.style.visibility = 'visible';
+            }
+        }
+
+        async function actSubmitAction() {
+            const emailInput = document.getElementById('actEmailInput');
+            const otpInput = document.getElementById('actOtpInput');
+            const feedback = document.getElementById('actFeedback');
+
+            if (_actMode === 'request') {
+                const email = emailInput.value.trim();
+                if (!email || !email.includes('@')) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Please enter a valid email address.';
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/activation/request-code', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email})
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        _actEmail = email;
+                        switchOverlayToVerifyMode('activation');
+                    } else {
+                        feedback.style.color = 'var(--malicious)';
+                        feedback.textContent = data.error || 'Failed to request verification code.';
+                    }
+                } catch(e) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Server connection error.';
+                }
+            }
+            else if (_actMode === 'verify_otp') {
+                const code = otpInput.value.trim();
+                if (code.length !== 6) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Please enter the 6-digit verification code.';
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/activation/verify-code', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: _actEmail, code})
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        setSessionToken(data.session_token);
+                        onActivationSuccess();
+                    } else {
+                        feedback.style.color = 'var(--malicious)';
+                        feedback.textContent = data.error || 'Invalid verification code.';
+                    }
+                } catch(e) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Verification server error.';
+                }
+            }
+            else if (_actMode === 'recovery_request') {
+                const email = emailInput.value.trim();
+                if (!email || !email.includes('@')) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Please enter your previously verified email.';
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/activation/request-recovery', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email})
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        _actEmail = email;
+                        switchOverlayToVerifyMode('recovery');
+                    } else {
+                        feedback.style.color = 'var(--malicious)';
+                        feedback.textContent = data.error || 'Recovery request failed.';
+                    }
+                } catch(e) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Server connection error.';
+                }
+            }
+            else if (_actMode === 'recovery_verify') {
+                const code = otpInput.value.trim();
+                if (code.length !== 6) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Please enter the 6-digit recovery code.';
+                    return;
+                }
+                try {
+                    const resp = await fetch('/api/activation/verify-recovery', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: _actEmail, code})
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        setSessionToken(data.session_token);
+                        onActivationSuccess();
+                    } else {
+                        feedback.style.color = 'var(--malicious)';
+                        feedback.textContent = data.error || 'Invalid recovery code.';
+                    }
+                } catch(e) {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = 'Recovery server error.';
+                }
+            }
+        }
+
+        function switchOverlayToVerifyMode(vtype) {
+            const status = document.getElementById('actStatus');
+            const subtitle = document.getElementById('actSubtitle');
+            const emailInput = document.getElementById('actEmailInput');
+            const otpGroup = document.getElementById('actOtpGroup');
+            const mainBtn = document.getElementById('actMainBtn');
+            const resendBtn = document.getElementById('actResendBtn');
+            const feedback = document.getElementById('actFeedback');
+
+            if (vtype === 'recovery') {
+                _actMode = 'recovery_verify';
+                status.textContent = 'Account Recovery';
+                status.style.color = 'var(--accent)';
+                subtitle.textContent = 'Enter the 6-digit recovery code sent to ' + _actEmail;
+                mainBtn.textContent = '🔓 Verify & Recover Session';
+            } else {
+                _actMode = 'verify_otp';
+                status.textContent = 'Enter Verification Code';
+                status.style.color = 'var(--accent)';
+                subtitle.textContent = 'A 6-digit OTP code was sent to ' + _actEmail;
+                mainBtn.textContent = '✓ Verify & Activate';
+            }
+
+            emailInput.disabled = true;
+            otpGroup.style.display = 'block';
+            resendBtn.style.display = 'block';
+            document.getElementById('actOtpInput').focus();
+            feedback.style.color = 'var(--safe)';
+            feedback.textContent = 'OTP code dispatched to your email. (Expires in 10 mins)';
+            startResendCooldownTimer(60);
+        }
+
+        async function actResendCode() {
+            const feedback = document.getElementById('actFeedback');
+            try {
+                const resp = await fetch('/api/activation/resend-code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: _actEmail})
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    feedback.style.color = 'var(--safe)';
+                    feedback.textContent = 'Fresh 6-digit code sent to your email.';
+                    startResendCooldownTimer(60);
+                } else {
+                    feedback.style.color = 'var(--malicious)';
+                    feedback.textContent = data.error || 'Failed to resend code.';
+                }
+            } catch(e) {
+                feedback.style.color = 'var(--malicious)';
+                feedback.textContent = 'Resend error.';
+            }
+        }
+
+        function startResendCooldownTimer(secs) {
+            _resendSeconds = secs;
+            const resendBtn = document.getElementById('actResendBtn');
+            resendBtn.disabled = true;
+            resendBtn.textContent = `Resend Code (${_resendSeconds}s)`;
+
+            if (_resendTimer) clearInterval(_resendTimer);
+            _resendTimer = setInterval(() => {
+                _resendSeconds--;
+                if (_resendSeconds <= 0) {
+                    clearInterval(_resendTimer);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = '🔁 Resend Code';
+                } else {
+                    resendBtn.textContent = `Resend Code (${_resendSeconds}s)`;
+                }
+            }, 1000);
+        }
+
+        function toggleRecoveryMode() {
+            const status = document.getElementById('actStatus');
+            const subtitle = document.getElementById('actSubtitle');
+            const emailInput = document.getElementById('actEmailInput');
+            const otpGroup = document.getElementById('actOtpGroup');
+            const mainBtn = document.getElementById('actMainBtn');
+            const resendBtn = document.getElementById('actResendBtn');
+            const recLink = document.getElementById('actRecoveryLink');
+            const feedback = document.getElementById('actFeedback');
+
+            if (_actMode === 'request' || _actMode === 'verify_otp') {
+                _actMode = 'recovery_request';
+                status.textContent = 'Account Recovery';
+                status.style.color = 'var(--accent)';
+                subtitle.textContent = 'Enter your previously verified email address to recover access.';
+                subtitle.style.color = 'var(--muted)';
+                emailInput.disabled = false;
+                emailInput.value = '';
+                otpGroup.style.display = 'none';
+                resendBtn.style.display = 'none';
+                mainBtn.textContent = '📩 Send Recovery Code';
+                recLink.textContent = '← Back to Activation';
+                feedback.textContent = '';
+            } else {
+                _actMode = 'request';
+                status.textContent = 'Sentinel Agent → LOCKED';
+                status.style.color = 'var(--malicious)';
+                subtitle.textContent = 'Activate your email ID to unlock Sentinel.';
+                emailInput.disabled = false;
+                emailInput.value = '';
+                otpGroup.style.display = 'none';
+                resendBtn.style.display = 'none';
+                mainBtn.textContent = '📧 Send Verification Code';
+                recLink.textContent = '🔑 Lost Session? Recover Access';
+                feedback.textContent = '';
+            }
+        }
+
+        function onActivationSuccess() {
+            document.getElementById('actStatus').textContent = 'Email Verified ✓';
+            document.getElementById('actStatus').style.color = 'var(--safe)';
+            document.getElementById('actSubtitle').textContent = 'Sentinel Agent → ACTIVE';
+            document.getElementById('actSubtitle').style.color = 'var(--accent)';
+            document.getElementById('actFeedback').style.color = 'var(--safe)';
+            document.getElementById('actFeedback').textContent = 'Session Authenticated! Unlocking dashboard…';
+            setTimeout(() => {
+                hideActivationOverlay();
+                refreshDashboard();
+                pollCompanionState();
+            }, 800);
+        }
+
+        async function actLogout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch(e) {}
+            setSessionToken('');
+            showActivationOverlay();
+            document.getElementById('actStatus').textContent = 'Sentinel Agent → LOCKED';
+            document.getElementById('actStatus').style.color = 'var(--malicious)';
+            document.getElementById('actSubtitle').textContent = 'Activate your email ID to unlock Sentinel.';
+            document.getElementById('actSubtitle').style.color = 'var(--muted)';
+            document.getElementById('actEmailInput').disabled = false;
+            document.getElementById('actOtpGroup').style.display = 'none';
+            document.getElementById('actResendBtn').style.display = 'none';
+            document.getElementById('actMainBtn').textContent = '📧 Send Verification Code';
+            document.getElementById('actFeedback').textContent = 'Session logged out.';
+            _actMode = 'request';
+        }
+
+        // Initialize dashboard on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            const activated = await checkActivation();
+            if (activated) {
+                refreshDashboard();
+                pollCompanionState();
+            }
+        });
+
+        // ═══════════════ Companion State Polling ═══════════════
+        const STATE_META = {
+            idle:         { label: '● Ready',          color: '#0A24E9', dot: '#0A24E9' },
+            investigating:{ label: '🔍 Investigating', color: '#D97E00', dot: '#D97E00' },
+            thinking:     { label: '💭 Thinking',      color: '#7C3AED', dot: '#7C3AED' },
+            tool_running: { label: '⚙️ Running Tool',  color: '#0891B2', dot: '#0891B2' },
+            confirm_needed:{ label:'⚠️ Awaiting Confirm', color:'#D97E00', dot:'#D97E00' },
+            verdict:      { label: '✅ Verdict Ready', color: '#2E9E5B', dot: '#2E9E5B' },
+            error:        { label: '❌ Error',         color: '#D64545', dot: '#D64545' },
+        };
+        const VERDICT_COLOR = { SAFE:'#2E9E5B', SUSPICIOUS:'#D97E00', MALICIOUS:'#D64545' };
+
+        async function pollCompanionState() {
+            try {
+                const res = await fetch('/api/state');
+                if (res.ok) {
+                    const data = await res.json();
+                    const state = data.state || 'idle';
+                    const risk  = data.risk  ?? 0;
+                    const verdict = data.verdict;
+                    const msg   = data.message || '';
+                    const meta  = STATE_META[state] || STATE_META.idle;
+
+                    let dotColor = meta.dot;
+                    let labelColor = meta.color;
+                    if (state === 'verdict' && verdict) {
+                        dotColor = labelColor = VERDICT_COLOR[verdict] || meta.dot;
+                    }
+                    if (risk >= 80) { dotColor = '#D64545'; }
+                    else if (risk >= 50) { dotColor = '#D97E00'; }
+
+                    const dot   = document.getElementById('companion-state-dot');
+                    const label = document.getElementById('companion-state-label');
+                    const badge = document.getElementById('companion-risk-badge');
+                    const msgEl = document.getElementById('companion-state-msg');
+                    const bar   = document.getElementById('companion-state-bar');
+
+                    if (dot)   { dot.style.background = dotColor; dot.style.boxShadow = `0 0 0 3px ${dotColor}22`; }
+                    if (label) { label.textContent = verdict ? `${meta.label} — ${verdict}` : meta.label; label.style.color = labelColor; }
+                    if (badge) {
+                        if (risk > 0) {
+                            badge.style.display = 'inline-block';
+                            badge.textContent = `Risk ${risk}/100`;
+                            badge.style.background = risk >= 80 ? 'var(--malicious-bg)' : risk >= 50 ? 'var(--suspicious-bg)' : 'var(--accent-soft)';
+                            badge.style.color = risk >= 80 ? 'var(--malicious)' : risk >= 50 ? 'var(--suspicious)' : 'var(--accent)';
+                        } else { badge.style.display = 'none'; }
+                    }
+                    if (msgEl) { msgEl.textContent = msg; }
+                    if (bar)   { bar.style.borderColor = risk >= 80 ? 'rgba(214,69,69,.5)' : risk >= 50 ? 'rgba(217,126,0,.45)' : 'var(--line)'; }
+
+                    const caseLink = document.getElementById('companion-case-link');
+                    if (caseLink) { caseLink.style.display = (state === 'verdict' && data.case_file) ? 'inline-block' : 'none'; }
+
+                    if (window.setWebCompanionState) {
+                        window.setWebCompanionState(state, verdict, risk, msg);
+                    } else if (window._companionState) {
+                        window._companionState.risk = risk;
+                        window._companionState.verdict = verdict;
+                        window._companionState.state = state;
+                        window._companionState.msg = msg;
+                    }
+
+                    const bubbleEl = document.getElementById('web-companion-bubble-text');
+                    if (bubbleEl) {
+                        let textToShow = msg || (verdict ? `${verdict} threat detected` : 'Sentinel active & monitoring');
+                        if (state === 'investigating') textToShow = '🔍 Forensic scan in progress...';
+                        bubbleEl.textContent = textToShow;
+                    }
+
+                    const pillEl = document.getElementById('web-companion-pill');
+                    if (pillEl) {
+                        const displayVerdict = verdict || (risk >= 80 ? 'MALICIOUS' : risk >= 50 ? 'SUSPICIOUS' : 'ACTIVE');
+                        pillEl.textContent = `${displayVerdict} (${risk}/100)`;
+                        if (displayVerdict === 'MALICIOUS' || risk >= 80) {
+                            pillEl.style.borderColor = 'rgba(214,69,69,.7)'; pillEl.style.color = 'var(--malicious)';
+                        } else if (displayVerdict === 'SUSPICIOUS' || risk >= 50) {
+                            pillEl.style.borderColor = 'rgba(217,126,0,.7)'; pillEl.style.color = 'var(--suspicious)';
+                        } else {
+                            pillEl.style.borderColor = 'rgba(46,158,91,.7)'; pillEl.style.color = 'var(--safe)';
+                        }
+                    }
+                }
+            } catch(e) { /* server might be off, ignore */ }
+            setTimeout(pollCompanionState, 2000);
+        }
+
+        async function viewWatchCase() {
+            try {
+                const res = await fetch('/api/watch/last');
+                if (!res.ok) { alert('No watched case available yet.'); return; }
+                const data = await res.json();
+                switchTab('investigate');
+                displayResults(data);
+            } catch(e) { alert('Could not load the watched case: ' + e); }
+        }
+    </script>
+
+    <!-- ── Floating Sentinel Guard Mascot Widget ── -->
+    <div id="web-companion-container">
+        <div id="web-companion-speech">
+            <span id="web-companion-bubble-text">Sentinel Ready</span>
+        </div>
+        <div style="position: relative; cursor: pointer;" onclick="switchTab('investigate')" title="Click Sentinel Guard to start forensic analysis">
+            <canvas id="web-companion-canvas" width="150" height="110"></canvas>
+        </div>
+        <div id="web-companion-pill" onclick="switchTab('investigate')">READY (0/100)</div>
+    </div>
+
+    <!-- Web Companion Canvas Pixel Art Renderer JS -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('web-companion-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const BODY_GRID = [
+                "......kk......",
+                "....kkgggg....",
+                "...kkggggkk...",
+                "..kkggggggkk..",
+                ".kkkwwwwwwkkk.",
+                ".kkwwwwwwwwkk.",
+                ".kkwwwwwwwwkk.",
+                ".kkwwwwwwwwkk.",
+                ".kkwwwwwwwwkk.",
+                "..kkwwwwwwkk..",
+                "...kkggggkk...",
+                ".....kkkk.....",
+            ];
+
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            let animTime = 0;
+            let isReacting = false;
+            let reactionTimer = null;
+            let lastStateKey = '';
+
+            window._companionState = { risk: 0, verdict: null, state: 'idle', msg: 'Sentinel ready' };
+
+            window.setWebCompanionState = function(state, verdict, risk, msg) {
+                const stateKey = `${state}_${verdict}_${risk}`;
+                if (stateKey === lastStateKey) return;
+                lastStateKey = stateKey;
+
+                window._companionState.state = state;
+                window._companionState.verdict = verdict;
+                window._companionState.risk = risk;
+                window._companionState.msg = msg;
+
+                if (reactionTimer) { clearTimeout(reactionTimer); reactionTimer = null; }
+
+                if (verdict === 'SAFE' || verdict === 'SUSPICIOUS' || verdict === 'MALICIOUS' || risk > 0) {
+                    isReacting = true;
+                    reactionTimer = setTimeout(() => {
+                        isReacting = false;
+                        reactionTimer = null;
+                    }, 1800);
+                } else {
+                    isReacting = false;
+                }
+            };
+
+            function getBodyColor(risk, verdict) {
+                if (verdict === 'SAFE') return '#2ecc71';
+                if (risk >= 80 || verdict === 'MALICIOUS') return '#e74c3c';
+                if (risk >= 50 || verdict === 'SUSPICIOUS') return '#f1c40f';
+                return '#2ecc71';
+            }
+
+            function getAuraColor(risk, verdict) {
+                if (verdict === 'SAFE') return 'rgba(16, 185, 129, ';
+                if (risk >= 80 || verdict === 'MALICIOUS') return 'rgba(239, 68, 68, ';
+                if (risk >= 50 || verdict === 'SUSPICIOUS') return 'rgba(245, 158, 11, ';
+                return 'rgba(59, 130, 246, ';
+            }
+
+            function renderMascot() {
+                animTime += 0.04;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const risk = window._companionState.risk ?? 0;
+                const verdict = window._companionState.verdict;
+                const state = window._companionState.state || 'idle';
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 - 5;
+                const scale = 5;
+
+                const breathing = (state === 'investigating' || state === 'thinking') ? Math.sin(animTime * 2.5) * 1.5 : 0;
+                const shake = (isReacting && (risk >= 50 || verdict === 'MALICIOUS' || verdict === 'SUSPICIOUS')) ? Math.sin(animTime * 30) * 3 : 0;
+                const bodyY = cy + breathing;
+                const bodyX = cx + shake;
+
+                // 1. Soft risk aura glow
+                const auraAlpha = 0.25 + 0.15 * Math.sin(animTime * 3);
+                const auraBase = getAuraColor(risk, verdict);
+                const grad = ctx.createRadialGradient(bodyX, bodyY, 10, bodyX, bodyY, 52);
+                grad.addColorStop(0, auraBase + (auraAlpha * 1.2) + ')');
+                grad.addColorStop(1, auraBase + '0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(bodyX, bodyY, 52, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 2. Ground shadow
+                ctx.fillStyle = 'rgba(11, 13, 23, 0.18)';
+                ctx.beginPath();
+                ctx.ellipse(bodyX, cy + 30, 30, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 3. Pixel sprite
+                const bodyColor = getBodyColor(risk, verdict);
+                const rows = BODY_GRID.length;
+                const cols = BODY_GRID[0].length;
+                const startX = bodyX - (cols * scale) / 2;
+                const startY = bodyY - (rows * scale) / 2;
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const ch = BODY_GRID[r][c];
+                        if (ch === '.') continue;
+                        if (ch === 'k') ctx.fillStyle = '#1a1a2e';
+                        else if (ch === 'w') ctx.fillStyle = '#ffffff';
+                        else ctx.fillStyle = bodyColor;
+                        ctx.fillRect(Math.floor(startX + c * scale), Math.floor(startY + r * scale), scale, scale);
+                    }
+                }
+
+                // 4. Scanning cyan beam
+                if (state === 'investigating' || state === 'thinking') {
+                    const scanX = startX + ((Math.sin(animTime * 5) + 1) / 2) * (cols * scale);
+                    ctx.strokeStyle = '#0891B2';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = '#0891B2';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(scanX, startY - 4);
+                    ctx.lineTo(scanX, startY + (rows * scale) + 4);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+
+                // 5. Eyes follow the cursor
+                const rect = canvas.getBoundingClientRect();
+                const mascotScreenX = rect.left + cx;
+                const mascotScreenY = rect.top + cy;
+                const dx = mouseX - mascotScreenX;
+                const dy = mouseY - mascotScreenY;
+                const dist = Math.hypot(dx, dy) || 1;
+                const ex = (dx / dist) * 3;
+                const ey = (dy / dist) * 2;
+
+                const eyeY = startY + rows * scale * 0.38;
+                const gap = 16;
+                const blink = (animTime % 4.0) < 0.12;
+
+                [-1, 1].forEach(side => {
+                    const eyeX = bodyX + side * (gap / 2);
+                    if (blink) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.beginPath();
+                        ctx.ellipse(eyeX, eyeY, 4, 1.2, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(eyeX, eyeY, 4.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#1a1a2e';
+                        ctx.beginPath();
+                        ctx.arc(eyeX + ex, eyeY + ey, 2.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                requestAnimationFrame(renderMascot);
+            }
+
+            requestAnimationFrame(renderMascot);
+        })();
+    </script>
+
+    <!-- ── Grounded Investigation Copilot Modal ── -->
+    <div id="copilot-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 650px; height: 600px; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="card-title"><i class="fa-solid fa-comments"></i> Sentinel AI Investigation Copilot</div>
+                <button class="close-modal" onclick="closeCopilotModal()">&times;</button>
+            </div>
+            <div style="padding: 11px 22px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted);">
+                Ask natural questions about the active investigation. Answers are grounded in real forensic evidence.
+            </div>
+            <div id="copilot-chat-history" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <div class="copilot-msg copilot-bot">
+                    <strong>🛡️ Sentinel Copilot</strong>
+                    Hello! I'm ready to answer any questions about your investigation. Try asking:
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                        <button class="btn btn-ghost btn-sm" onclick="askCopilotQuestion('Is this email safe?')">"Is this email safe?"</button>
+                        <button class="btn btn-ghost btn-sm" onclick="askCopilotQuestion('Why is it suspicious?')">"Why is it suspicious?"</button>
+                        <button class="btn btn-ghost btn-sm" onclick="askCopilotQuestion('What evidence did you find?')">"Show evidence"</button>
+                        <button class="btn btn-ghost btn-sm" onclick="askCopilotQuestion('What should I do?')">"What should I do?"</button>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 15px 22px; border-top: 1px solid var(--line); display: flex; gap: 10px;">
+                <input type="text" id="copilot-input" placeholder="Ask Sentinel Copilot a question…" style="flex: 1; background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; padding: 10px 14px; color: var(--ink); font-size: 13px; outline: none; font-family: inherit;" onkeydown="if(event.key==='Enter') askCopilotQuestion()">
+                <button class="btn btn-primary" onclick="askCopilotQuestion()"><i class="fa-solid fa-paper-plane"></i> Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCopilotModal() {
+            if (!_currentCaseData) {
+                alert('Please run or upload an investigation first!');
+                return;
+            }
+            document.getElementById('copilot-modal').classList.add('active');
+        }
+
+        function closeCopilotModal() {
+            document.getElementById('copilot-modal').classList.remove('active');
+        }
+
+        async function askCopilotQuestion(qText) {
+            if (!qText) qText = document.getElementById('copilot-input').value.trim();
+            if (!qText || !_currentCaseData) return;
+
+            const chatBox = document.getElementById('copilot-chat-history');
+
+            const uDiv = document.createElement('div');
+            uDiv.className = 'copilot-msg copilot-user';
+            uDiv.textContent = qText;
+            chatBox.appendChild(uDiv);
+            document.getElementById('copilot-input').value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/api/copilot/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: qText, case_data: _currentCaseData })
+                });
+                const data = await res.json();
+
+                const aDiv = document.createElement('div');
+                aDiv.className = 'copilot-msg copilot-bot';
+                aDiv.innerHTML = `<strong>🛡️ Sentinel Copilot</strong>${data.answer}`;
+                chatBox.appendChild(aDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+</html>

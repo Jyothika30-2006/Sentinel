@@ -1,0 +1,43 @@
+Delivered-To: cfo@examplecorp.com
+Received: by 2002:a05:6a00:1b2:c0de:dead:beef:1 with SMTP id x1csp999999999;
+        Thu, 05 Sep 2026 14:47:03 -0700 (PDT)
+X-Received: by 2002:a17:906:2c4a:b0:1a2:b3c4:d5e6 with SMTP id y2-20020a1709062c4a00b001a2b3c4d5e6mr99999qvl.4.1725526023000;
+        Thu, 05 Sep 2026 14:47:03 -0700 (PDT)
+Return-Path: <ceo.examplecorp@gmail.com>
+Received: from mail-il1-f179.google.com (mail-il1-f179.google.com [209.85.220.179])
+        by mx.google.com with ESMTPS id z3si9999999qvb.1.2026.09.05.14.47.02
+        for <cfo@examplecorp.com>;
+        Thu, 05 Sep 2026 14:47:02 -0700 (PDT)
+Received: by mail-il1-f179.google.com with SMTP id f179so12345678ili.4
+        for <cfo@examplecorp.com>; Thu, 05 Sep 2026 14:47:02 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ceo.examplecorp@gmail.com designates 209.85.220.179 as permitted sender) client-ip=209.85.220.179;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=H4sIAAAAAAAA;
+       spf=pass (google.com: domain of ceo.examplecorp@gmail.com designates 209.85.220.179 as permitted sender) smtp.mailfrom=ceo.examplecorp@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20230601;
+       h=to:from:subject:message-id:date:mime-version; bh=ABCDEFGHIJKLMNOPQRSTUVWXYZ=;
+       b=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/+AA
+From: "CEO ExampleCorp" <ceo.examplecorp@gmail.com>
+To: CFO <cfo@examplecorp.com>
+Subject: Urgent wire transfer — please keep confidential
+Date: Thu, 05 Sep 2026 14:46:58 -0700
+Message-ID: <CABkXjZ9QwErTyUiOpAsDfGhJkLzXcVbNm12345678@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hi,
+
+I'm in a board meeting and can't talk right now. I need you to process a
+confidential wire transfer today — $48,500 — to our new acquisition partner.
+
+Please send the funds to:
+  Bank: First National
+  Account: 9928173645
+  Routing: 021000021
+
+I'll send the invoice after the meeting. Do not discuss this with anyone
+until it's done — it's time-sensitive and confidential.
+
+Thanks,
+[CEO Name]
+Sent from my iPhone

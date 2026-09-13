@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Evidence / reports (NEVER commit real case data — it may contain PII/malware)
+evidence/
+reports/
+artifacts/
+
+# Local blockchain ledger
+*.chain.json
+chain_data/
+
+# Generated pet preview images
+previews/
+
+# Extracted attachments (potentially malicious)
+/tmp/sentinel_*/
+*.extracted/
+tools/
+
+# Runtime artifacts (mail under investigation, local settings, caches)
+uploads/
+sentinel_settings.json
+*.log
+.pytest_cache/
+.coverage
+samples/extracted_attachments/
